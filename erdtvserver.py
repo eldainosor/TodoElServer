@@ -48,7 +48,10 @@ def game_rest():
             return '{"result": "success", "content": {"userid":"000001", "sessionid": "1", "nick": "' + datosRequest['username'] + '"}}'
 
         case 'getticker':
-            return '{"result":"success", "content": {"ticker":["' + listaTicker[random.randrange(1, len(listaTicker))]'"]}}'
+            strTicker = listaTicker[random.randrange(1, len(listaTicker))]
+            if strTicker != "bolas":
+                strTicker = strTicker.upper()
+            return '{"result":"success", "content": {"ticker":["' + strTicker'"]}}'
 
         case _:
             return '{"result":"other"}'
