@@ -1,0 +1,2 @@
+FLASK_APP=erdtvserver.py
+APP_NAME=TodoElServer
