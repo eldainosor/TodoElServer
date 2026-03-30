@@ -47,7 +47,7 @@ def game_rest():
     resultNormal = "success"
     resultFallback = "other"
 
-    # Generalmente las respuestas que vamos a tener son exitosas... excepto en el resto.
+    # Generalmente las respuestas que vamos a tener son exitosas... excepto en las que no conozcamos.
     tipoResult = resultNormal
 
     # Escribiendo respuestas según la ocasión
@@ -68,6 +68,11 @@ def game_rest():
                 'ticker': [strTicker]
             }
 
+        case 'getallsongs':
+            for cancion in listaCanciones:
+                cancion.update(datosExtraCanciones)
+
+            tipoContent = listaCanciones
         case _:
             tipoResult = resultFallback
             tipoContent = {}
