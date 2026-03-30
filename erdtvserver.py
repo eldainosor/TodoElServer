@@ -12,6 +12,7 @@
 
 # Inicializando Flask
 from flask import Flask, request
+import json
 import random
 app = Flask(__name__)
 
@@ -42,21 +43,42 @@ def game_rest():
     except:
         datosRequest = {}
 
+    # Tipos de respuesta
+    resultNormal = "success"
+    resultFallback = "other"
+
+    # Generalmente las respuestas que vamos a tener son exitosas... excepto en el resto.
+    tipoResult = resultNormal
+
+    # Escribiendo respuestas según la ocasión
     match tipoRequest:
         case 'login':
-            print('{"result": "success", "content": {"userid":"000001", "sessionid": "1", "nick": "' + datosRequest['username'] + '"}}')
-            return '{"result": "success", "content": {"userid":"000001", "sessionid": "1", "nick": "' + datosRequest['username'] + '"}}'
+            tipoContent = {
+                'userid': '000001',
+                'sessionid': '1',
+                'nick': datosRequest['username']
+            }
 
         case 'getticker':
             strTicker = listaTicker[random.randrange(1, len(listaTicker))]
             if strTicker != "bolas":
                 strTicker = strTicker.upper()
-            return '{"result":"success", "content": {"ticker":["' + strTicker'"]}}'
+
+            tipoContent = {
+                'ticker': [strTicker]
+            }
 
         case _:
-            return '{"result":"other"}'
+            tipoResult = resultFallback
+            tipoContent = {}
 
+    respuestaFormateada = {
+        'result': tipoResult,
+        'content': tipoContent
+    }
+
+    return json.dumps(respuestaFormateada)
     # Loop through list of dictionaries
-    for cancionDisponible in listaCanciones:
-        print(f"{cancionDisponible['cancion']} cantada por {cancionDisponible['banda']} tiene el id {cancionDisponible['disco']}.")
-    return '{}'
+#    for cancionDisponible in listaCanciones:
+#        print(f"{cancionDisponible['cancion']} cantada por {cancionDisponible['banda']} tiene el id {cancionDisponible['disco']}.")
+#    return '{}'
