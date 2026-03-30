@@ -314,4 +314,4 @@ listaCanciones = [
 	}
 ]
 
-listaTicker = ["Volvió El Rock de Tu Vida!", "Imaginate estar jugando a El Rock de Tu Vida en pleno 2026", "Dato: Este juego se presentó en el día de la bandera en 2011", "Podés jugar tambien al Rock Band 3 Deluxe", "Podés jugar tambien al Clone Hero", "Podés jugar tambien al YARG", "Podés jugar tambien al Fortnite Festival", "Podés jugar tambien al Project Diva", "Podés jugar tambien al BetterGH3", "Saludos a la gente de Rock Band en Español", "Saludos a Envido32", "ESTA LOCURAAAAAAAAAAAAAAAAAAAAAAAAA", "bolas"]
+listaTicker = ["Volvio El Rock de Tu Vida!", "Imaginate estar jugando a El Rock de Tu Vida en pleno 2026", "Dato: Este juego se presento en el dia de la bandera en 2011", "Podes jugar tambien al Rock Band 3 Deluxe", "Podes jugar tambien al Clone Hero", "Podes jugar tambien al YARG", "Podes jugar tambien al Fortnite Festival", "Podes jugar tambien al Project Diva", "Podes jugar tambien al BetterGH3", "Saludos a la gente de Rock Band en Español", "Saludos a Envido32", "ESTA LOCURAAAAAAAAAAAAAAAAAAAAAAAAA", "bolas"]
