@@ -194,3 +194,6 @@ def game_rest():
     print(json.dumps(respuestaFormateada, indent=4))
 
     return json.dumps(respuestaFormateada, indent=4)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=4637, debug=False)

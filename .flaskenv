@@ -1,2 +1,3 @@
 FLASK_APP=erdtvserver.py
 APP_NAME=TodoElServer
+FLASK_RUN_PORT=4637
