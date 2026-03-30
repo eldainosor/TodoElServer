@@ -15,6 +15,7 @@ from flask import Flask, request
 import json
 import random
 import hashlib
+import os
 app = Flask(__name__)
 
 # Importando datos del juego y otras cosas
@@ -94,14 +95,46 @@ def game_rest():
             }
 
         case 'getauthorizedsongs':
+            # Concepto: Buscar dinámicamente que canciones tiene
+            #           el usuario instaladas en el juego y generamos
+            #           una lista de canciones válidas para usar.
+            #           Se podrían agregar las 28 canciones disponibles
+            #           a la hora de redactar esto, pero no se como se comporta
+            #           cuando alguna de esas no estén instaladas.
+            #           De paso, lo hacemos que funcione a futuro
+            #           en caso que aparezca más DLC (copium)
+            #
+            # CONTIENE CÓDIGO GENERADO CON IA
+            #
+            # Vamos a establecer lo básico antes de empezar, el prefijo válido
+            prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
+            # Establecemos el directorio actual donde estarían los charts
+            dirCanciones=os.path.dirname(sys.executable)
+            pathCancionesInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'song')
+            # Arrancando los elementos necesarios para la lista final
             authItemCount = 0
             dictCancionesAutorizadas = {}
-            for cancion in listaCancionesAutorizadas:
-                # Añadiendo metadatos irrelevantes
-                cancion.update(datosExtraCanciones)
+
+            # Buscar las canciones en el directorio
+            if os.path.exists(dirCanciones):
+                listaCancionesCBR = list(Path(pathCancionesInstaladas).glob("*.cbr"))
+
+            for archivoChart in listaCancionesCBR:
+                songidArchivo = archivoChart.stem  # nombre sin extensión
+                pathArchivo = str(archivoChart)
+
+                # Leemos el archivo cbr
+                with open(pathArchivo, 'rb') as f:
+                    contenido = f.read()
+                md5Cancion = hashlib.md5(prefijoValidador + contenido).hexdigest()
+
+                nuevaCancionAutorizada = {
+                     'songid': songidArchivo, 
+                     'hash': [str(md5Cancion)]
+                }
 
                 # Añadiendo esto como un item nuevo
-                nuevaCancion = {str(authItemCount): cancion}
+                nuevaCancion = {str(authItemCount): nuevaCancionAutorizada}
                 dictCancionesAutorizadas.update(nuevaCancion)
                 authItemCount += 1
 
@@ -110,7 +143,7 @@ def game_rest():
             }
 
         case 'submithighscore':
-            # TODO: Generacion de hash propiamente hecha - ALGORITMO TEMPORAL HECHO CON GEMINI
+            # TODO: Generacion de hash propiamente hecha - ALGORITMO TEMPORAL HECHO CON IA
             # Generación de los hashes, PENDIENTE VER QUE PASA EN ESTA REQ
             #saltPuntajes = bytes.fromhex("B52167B41E4589FEC5AA94")
             #payload = str("08CD95C9").encode('ascii') + str(2011).encode('ascii') + saltPuntajes
