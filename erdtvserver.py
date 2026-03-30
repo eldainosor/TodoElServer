@@ -34,6 +34,7 @@ def game_rest():
 
     # Extraer las peticiones del juego.
     requestData = eval(request.form.get('packet'))
+    print("Consulta del juego:")
     print(request.form.get('packet'))
 
     # Extraer información importante
@@ -69,10 +70,38 @@ def game_rest():
             }
 
         case 'getallsongs':
+            itemCount = 0
+            dictCanciones = {}
             for cancion in listaCanciones:
+                # Añadiendo metadatos irrelevantes
                 cancion.update(datosExtraCanciones)
 
-            tipoContent = listaCanciones
+                # Añadiendo esto como un item nuevo
+                nuevaCancion = {str(itemCount): cancion}
+                dictCanciones.update(nuevaCancion)
+                itemCount += 1
+
+            tipoContent = {
+                'songs': dictCanciones,
+                'table': ""
+            }
+
+        case 'getauthorizedsongs':
+            authItemCount = 0
+            dictCancionesAutorizadas = {}
+            for cancion in listaCancionesAutorizadas:
+                # Añadiendo metadatos irrelevantes
+                cancion.update(datosExtraCanciones)
+
+                # Añadiendo esto como un item nuevo
+                nuevaCancion = {str(authItemCount): cancion}
+                dictCancionesAutorizadas.update(nuevaCancion)
+                authItemCount += 1
+
+            tipoContent = {
+                'songs': dictCancionesAutorizadas
+            }
+
         case _:
             tipoResult = resultFallback
             tipoContent = {}
@@ -81,9 +110,7 @@ def game_rest():
         'result': tipoResult,
         'content': tipoContent
     }
+    print("Respuesta generada:")
+    print(json.dumps(respuestaFormateada, indent=4))
 
-    return json.dumps(respuestaFormateada)
-    # Loop through list of dictionaries
-#    for cancionDisponible in listaCanciones:
-#        print(f"{cancionDisponible['cancion']} cantada por {cancionDisponible['banda']} tiene el id {cancionDisponible['disco']}.")
-#    return '{}'
+    return json.dumps(respuestaFormateada, indent=4)

@@ -314,6 +314,12 @@ listaCanciones = [
 	}
 ]
 
+listaCancionesAutorizadas = [
+	{'songid': '8CD48B7478B27A8', 
+	 'hash': ['955a5330e5981bfe6c6697d1e4c15469']
+	}
+]
+
 # Esto es un fallback de los datos que NO vamos a llenar de la lista de canciones... pero el juego las necesita.
 datosExtraCanciones = {
 	'nueva': '0',
