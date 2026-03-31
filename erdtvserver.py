@@ -16,6 +16,7 @@ import json
 import random
 import hashlib
 import os
+from pathlib import Path
 app = Flask(__name__)
 
 # Importando datos del juego y otras cosas
@@ -30,9 +31,6 @@ def index():
 
 @app.route('/game/rest.php', methods=['POST'])
 def game_rest():
-    # Prueba de ERDTV
-    #print("Tipo de peticion:" + requestData['type'])
-    #print(str(requestData['content']))
 
     # Extraer las peticiones del juego.
     requestData = eval(request.form.get('packet'))
@@ -118,26 +116,29 @@ def game_rest():
             # Buscar las canciones en el directorio
             if os.path.exists(dirCanciones):
                 listaCancionesCBR = list(Path(pathCancionesInstaladas).glob("*.cbr"))
+                if listaCancionesCBR:
+                    for archivoChart in listaCancionesCBR:
+                        songidArchivo = archivoChart.stem  # nombre sin extensión
+                        pathArchivo = str(archivoChart)
 
-            for archivoChart in listaCancionesCBR:
-                songidArchivo = archivoChart.stem  # nombre sin extensión
-                pathArchivo = str(archivoChart)
+                        # Leemos el archivo cbr
+                        with open(pathArchivo, 'rb') as f:
+                            contenido = f.read()
+                        md5Cancion = hashlib.md5(prefijoValidador + contenido).hexdigest()
 
-                # Leemos el archivo cbr
-                with open(pathArchivo, 'rb') as f:
-                    contenido = f.read()
-                md5Cancion = hashlib.md5(prefijoValidador + contenido).hexdigest()
+                        nuevaCancionAutorizada = {
+                             'songid': songidArchivo, 
+                             'hash': [str(md5Cancion)]
+                        }
 
-                nuevaCancionAutorizada = {
-                     'songid': songidArchivo, 
-                     'hash': [str(md5Cancion)]
-                }
-
-                # Añadiendo esto como un item nuevo
-                nuevaCancion = {str(authItemCount): nuevaCancionAutorizada}
-                dictCancionesAutorizadas.update(nuevaCancion)
-                authItemCount += 1
-
+                        # Añadiendo esto como un item nuevo
+                        nuevaCancion = {str(authItemCount): nuevaCancionAutorizada}
+                        dictCancionesAutorizadas.update(nuevaCancion)
+                        authItemCount += 1
+                else:
+                    print("No se encontraron archivos .cbr en " + pathCancionesInstaladas + ". El juego crashea si no tiene canciones.")
+            else:
+                print("Hubo un error al encontrar el directorio de las canciones. Se buscó en:" + pathCancionesInstaladas)
             tipoContent = {
                 'songs': dictCancionesAutorizadas
             }
@@ -176,7 +177,7 @@ def game_rest():
         case 'getads':
             tipoContent = {
                 'userid': '000001',
-                'sessionid': datosRequest['sessionid']
+                'sessionid': requestData['sessionid']
             }
 
         case 'extra':
@@ -190,10 +191,12 @@ def game_rest():
         'result': tipoResult,
         'content': tipoContent
     }
-    print("Respuesta generada:")
-    print(json.dumps(respuestaFormateada, indent=4))
 
-    return json.dumps(respuestaFormateada, indent=4)
+    respuestaFinal = json.dumps(respuestaFormateada, indent=4, ensure_ascii=False).encode('cp1252')
+    print("Respuesta generada:")
+    print(respuestaFinal)
+
+    return respuestaFinal
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=4637, debug=False)
