@@ -1,6 +1,6 @@
 .venv
 __pycache__
 web.ico
-.spec
+TodoElServer.spec
 build
 dist
