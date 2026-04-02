@@ -12,15 +12,139 @@
 
 # Inicializando Flask
 from flask import Flask, request
-import json
-import random
 import hashlib
+import json
+import math
 import os
+import random
+import struct
+import sys
 from pathlib import Path
 app = Flask(__name__)
 
 # Importando datos del juego y otras cosas
 from erdtv_data import *
+
+# Vamos a hacer todo el trabajo con los archivos de una sola vez
+#
+# Declaramos los diccionarios necesarios
+dictCancionesListas = {}
+dictCancionesAutorizadas = {}
+
+# CONCEPTO:
+#    El juego tiene los metadatos de sus canciones en los archivos CBR,
+#    entonces, nosotros vamos a generar una lista dinámica directamente
+#    usando la metadata disponible.
+#    También, vamos a generar el auth desde acá así el juego tiene
+#    todo lo necesario para validar toda la info.
+#    Esto puede hacer andar DLCs futuros, así como... ¿customs?
+#    (giga copium)
+#    AVISO: CONTIENE CÓDIGO GENERADO CON IA
+#
+# 
+def getAllSongsData():
+    # Primero, vamos a establecer los datos necesarios para este proceso
+    # siendo contadores, paths, etc.
+    dirCanciones=os.getenv('TES_DIR_JUEGO', os.path.dirname(sys.executable))
+    pathCancionesInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'song')
+    # Prefijo necesario para validar los hashes de authorizedsongs
+    prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
+    print("Generando las listas de canciones...")
+
+
+    # Arrancando los elementos necesarios para la lista final
+    countCancionesAutorizadas = 0
+    countCancionesDisponibles = 0
+    existeCarpetaCBR = False
+
+    # Buscar si hay canciones en el directorio
+    if os.path.exists(dirCanciones):
+        existeCarpetaCBR = True
+        listaCancionesCBR = list(Path(pathCancionesInstaladas).glob("*.cbr"))
+        if listaCancionesCBR:
+            for archivoChart in listaCancionesCBR:
+                # Metadatos de la cancion a analizar
+                songidArchivo = archivoChart.stem  # nombre sin extensión
+                pathArchivo = str(archivoChart)
+
+                # Leemos el archivo cbr
+                with open(pathArchivo, 'rb') as f:
+                    # Necesario para el hash de la cancion
+                    contenidoCBR = f.read()
+
+                    # Necesario para los metadatos de la cancion
+                    # Leer campos de tamaño fijo (no se usa por que sacamos el songid del nombre del archivo)
+                    #f.seek(0x0B)                   # offset de songid,
+                    #songidExtraida = struct.unpack('<Q', f.read(8))[0]   # 8 bytes, little-endian
+                    f.seek(0x1C)
+                    bandaExtraida = struct.unpack('<Q', f.read(8))[0]
+                    f.seek(0x23)
+                    discoExtraido = struct.unpack('<Q', f.read(8))[0]
+                    f.seek(0x2C)
+                    anioExtraido = struct.unpack('<H', f.read(2))[0]     # 2 bytes, little-endian
+
+                    # Leer título (UTF-16LE hasta doble nulo)
+                    f.seek(0x30)
+                    titulo_bytes = []
+                    while True:
+                        b = f.read(2)
+                        if b == b'\x00\x00':
+                            break
+                        titulo_bytes.append(b)
+                    tituloExtraido = b''.join(titulo_bytes).decode('utf-16-le')
+
+                    # Posición después del doble nulo
+                    pos_despues_titulo = f.tell()   # apunta justo después de los dos bytes nulos
+                    # Saltar 10 bytes (offset fijo según análisis)
+                    f.seek(pos_despues_titulo + 10)
+                    # Leer 4 bytes de dificultades (guitarra, bajo, batería, voz)
+                    difGuitarraExtraida, difBajoExtraida, difBateriaExtraida, difVozExtraida = struct.unpack('4B', f.read(4))
+
+                    # Dificultad general = promedio redondeado para abajo
+                    difGralCalculada = math.floor((difGuitarraExtraida + difBajoExtraida + difBateriaExtraida + difVozExtraida) / 4)
+
+                # Hashear y guardar cancion autorizada
+                md5Cancion = hashlib.md5(prefijoValidador + contenidoCBR).hexdigest()
+                nuevaCancionAutorizada = {
+                     'songid': songidArchivo, 
+                     'hash': [str(md5Cancion)]
+                }
+                nuevaCancionAuth = {str(countCancionesAutorizadas): nuevaCancionAutorizada}
+                dictCancionesAutorizadas.update(nuevaCancionAuth)
+                countCancionesAutorizadas += 1
+
+                # Guardar la cancion disponible con sus metadatos
+                nuevaCancionLista = {
+                     'songid': songidArchivo, 
+                     'banda': bandaExtraida, 
+                     'cancion': tituloExtraido, 
+                     'disco': discoExtraido, 
+                     'anio': str(anioExtraido), 
+                     'dif_gral': str(difGralCalculada), 
+                     'dif_guitarra': str(difGuitarraExtraida), 
+                     'dif_bajo': str(difBajoExtraida), 
+                     'dif_bateria': str(difBateriaExtraida), 
+                     'dif_voz': str(difVozExtraida)
+                }
+                nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionLista}
+                dictCancionesListas.update(nuevaCancionDisp)
+                countCancionesDisponibles += 1
+        else:
+            print("No se encontraron archivos .cbr en " + pathCancionesInstaladas + ". El juego crashea si no tiene canciones.")
+            existeCarpetaCBR = False
+    else:
+        print("Hubo un error al encontrar el directorio de las canciones. Se buscó en:" + pathCancionesInstaladas)
+    if not existeCarpetaCBR:
+        # En caso de que falle, solo usar la info de envido32 para canciones disponibles
+        for cancionDisp in listaCanciones:
+            # Añadiendo metadatos irrelevantes
+            cancionDisp.update(datosExtraCanciones)
+
+            # Añadiendo esto como un item nuevo
+            nuevaCancion = {str(countCancionesDisponibles): cancionDisp}
+            dictCancionesListas.update(nuevaCancion)
+            countCancionesDisponibles += 1
+    print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.") 
 
 # Página de prueba
 @app.route('/')
@@ -31,6 +155,9 @@ def index():
 
 @app.route('/game/rest.php', methods=['POST'])
 def game_rest():
+    # Inicializando las listas de canciones solo si no tenemos datos
+    if not dictCancionesAutorizadas or not dictCancionesListas:
+        getAllSongsData()
 
     # Extraer las peticiones del juego.
     requestData = eval(request.form.get('packet'))
@@ -76,69 +203,12 @@ def game_rest():
             }
 
         case 'getallsongs':
-            itemCount = 0
-            dictCanciones = {}
-            for cancion in listaCanciones:
-                # Añadiendo metadatos irrelevantes
-                cancion.update(datosExtraCanciones)
-
-                # Añadiendo esto como un item nuevo
-                nuevaCancion = {str(itemCount): cancion}
-                dictCanciones.update(nuevaCancion)
-                itemCount += 1
-
             tipoContent = {
-                'songs': dictCanciones,
+                'songs': dictCancionesListas,
                 'table': ""
             }
 
         case 'getauthorizedsongs':
-            # Concepto: Buscar dinámicamente que canciones tiene
-            #           el usuario instaladas en el juego y generamos
-            #           una lista de canciones válidas para usar.
-            #           Se podrían agregar las 28 canciones disponibles
-            #           a la hora de redactar esto, pero no se como se comporta
-            #           cuando alguna de esas no estén instaladas.
-            #           De paso, lo hacemos que funcione a futuro
-            #           en caso que aparezca más DLC (copium)
-            #
-            # CONTIENE CÓDIGO GENERADO CON IA
-            #
-            # Vamos a establecer lo básico antes de empezar, el prefijo válido
-            prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
-            # Establecemos el directorio actual donde estarían los charts
-            dirCanciones=os.path.dirname(sys.executable)
-            pathCancionesInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'song')
-            # Arrancando los elementos necesarios para la lista final
-            authItemCount = 0
-            dictCancionesAutorizadas = {}
-
-            # Buscar las canciones en el directorio
-            if os.path.exists(dirCanciones):
-                listaCancionesCBR = list(Path(pathCancionesInstaladas).glob("*.cbr"))
-                if listaCancionesCBR:
-                    for archivoChart in listaCancionesCBR:
-                        songidArchivo = archivoChart.stem  # nombre sin extensión
-                        pathArchivo = str(archivoChart)
-
-                        # Leemos el archivo cbr
-                        with open(pathArchivo, 'rb') as f:
-                            contenido = f.read()
-                        md5Cancion = hashlib.md5(prefijoValidador + contenido).hexdigest()
-
-                        nuevaCancionAutorizada = {
-                             'songid': songidArchivo, 
-                             'hash': [str(md5Cancion)]
-                        }
-
-                        # Añadiendo esto como un item nuevo
-                        nuevaCancion = {str(authItemCount): nuevaCancionAutorizada}
-                        dictCancionesAutorizadas.update(nuevaCancion)
-                        authItemCount += 1
-                else:
-                    print("No se encontraron archivos .cbr en " + pathCancionesInstaladas + ". El juego crashea si no tiene canciones.")
-            else:
-                print("Hubo un error al encontrar el directorio de las canciones. Se buscó en:" + pathCancionesInstaladas)
             tipoContent = {
                 'songs': dictCancionesAutorizadas
             }
