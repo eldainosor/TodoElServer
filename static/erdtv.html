@@ -285,7 +285,7 @@
       window.addEventListener('DOMContentLoaded', () => {
         // 
         const urlParams = new URLSearchParams(window.location.search);
-        const accionRequest = urlParams.get('accion');
+        const accionRequest = urlParams.get('action');
         if (accionRequest === 'registro') {
           const modalFalsoRegistro = document.getElementById('registroModal');
           const modalRegistro = new bootstrap.Modal(modalFalsoRegistro);
