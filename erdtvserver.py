@@ -11,7 +11,7 @@
 #                                      (nuevo server fantasma)
 
 # Inicializando Flask
-from flask import Flask, request, send_file, abort
+from flask import Flask, request, send_file, abort, redirect, url_for
 import hashlib
 import json
 import math
@@ -201,7 +201,10 @@ def getAllSongsData():
 
 # Página de prueba
 @app.route('/')
-@app.route('/index')
+def redir():
+    return redirect('/website/index.php')
+
+@app.route('/website/index.php')
 def index():
     return 'Si estás viendo esto, que vuelva bootleggers. #AndroidCustomROMs'
 
