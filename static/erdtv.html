@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El rock de tu vida | Inicio</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+  </head>
+  <body>
+    <!-- Vertically centered modal -->
+    <div class="modal fade" id="registroModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">No hay registro :(</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <img class="img-fluid rounded" src="/static/img/sepuede_parca.jpg" alt="No se puede">
+            <audio controls autoplay id="ripmusica">
+              <source src="/static/assets/qepd.ogg" type="audio/ogg"> Tu navegador no soporta la reproduccion de audio.
+            </audio>
+            <p>Si llegaste a ver este mensaje, habrás instalado El Rock de Tu Vida (o habrás hecho click en Registrar) y justo está hosteado este proyecto.</p>
+            <p>Lo importante es que, no hace falta que te registres. Ingresando cualquier nombre de usuario podés comenzar a jugar.</p>
+            <p>Ahora, disfrutá del juego! Todo esto es posible gracias al Team de TodoElRock.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <h1>El Rock de Tu Vida - Revival de TodoElServer</h1>
+      <h3>Introducción</h3>
+      <p>Este es un servidor que busca revivir los servicios de El Rock de Tu Vida. Esto es una implementación online de un proyecto para hacerlo offline que se encuentra en <a href="https://github.com/eldainosor/TodoElServer">este repo de GitHub</a>. </p>
+      <p>No conocés el juego? Hay gameplay del juego archivado en <a href="https://www.youtube.com/@ElRockDeTuVida-Archivo">este canal de YouTube</a> o podés ver la siguiente promo: </p>
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/u5nwBUy-dZI?si=7lVfKLfRDwYHKEMM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      <br>
+      <h3>Estado actual del TodoElServer</h3>
+      <p>El proyecto de TodoElServer soporta iniciar sesión en el juego y poder usar las 28 canciones que se encuentran en los 2 lanzamientos del juego (con la posibilidad de verificar archivos locales, si es que está instalado). No hace falta registrarse. </p>
+      <p>Esto es una implementación inicial, aunque quien sabe si en el futuro se pueda implementar: </p>
+      <ul>
+        <li>Servicio de Ads (solo por cuestiones de preservación)</li>
+        <li>Sistema de puntajes online con registro y guardado</li>
+        <li>Vista de catálogo online</li>
+      </ul>
+      <h3>Planes futuros del proyecto</h3>
+      <p>Actualmente se hicieron pruebas offline de este servicio pero requiere ingenieria inversa, parcheo del ejecutable y un server web. La idea de una implementación offline consiste de:</p>
+      <ul>
+        <li>Modificación del ejecutable para la comunicación exclusiva con el servidor ficticio para poder usar todas las funciones del juego</li>
+        <li>Armado de un server interno (o con otro ejecutable) sin depender de Python y que funcione en Win7 para arriba</li>
+        <li>Guardado 100% local</li>
+        <li>Sistema para generar customs de Rock Band a Mozart (Proyecto Arbys2Mostaza???)</li>
+        <li>Conservado de DLCs restantes</li>
+      </ul>
+      <h3>Los DLCs perdidos</h3>
+      <p>Luego de una investigación larga hecha por TodoElRock, descubrimos que hay más de 30 canciones que no se pueden obtener de ninguna manera. No hay archivos, ni registro, ni nada. Se puede considerar lost media?</p>
+      <p>Entre tweets, archivos del sitio oficial y otros medios encontramos que las siguientes canciones estaban disponibles para descargar:</p>
+      <div class="table" style="max-width: 40vw;">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Canción</th>
+              <th>Artista</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Confundido</td>
+              <td>Los Auténticos Decadentes</td>
+            </tr>
+            <tr>
+              <td>Somos</td>
+              <td>Los Auténticos Decadentes</td>
+            </tr>
+            <tr>
+              <td>El antigil</td>
+              <td>Bulldog</td>
+            </tr>
+            <tr>
+              <td>Más y más</td>
+              <td>Bulldog</td>
+            </tr>
+            <tr>
+              <td>La trampa</td>
+              <td>Cadena Perpetua</td>
+            </tr>
+            <tr>
+              <td>Bastará</td>
+              <td>Los Cafres</td>
+            </tr>
+            <tr>
+              <td>Kaos</td>
+              <td>Los Cafres</td>
+            </tr>
+            <tr>
+              <td>Metrópolis nueva</td>
+              <td>Catupecu Machu</td>
+            </tr>
+            <tr>
+              <td>Fuí</td>
+              <td>Ella Es Tan Cargosa</td>
+            </tr>
+            <tr>
+              <td>Cristal</td>
+              <td>Estelares</td>
+            </tr>
+            <tr>
+              <td>Doce chicharras</td>
+              <td>Estelares</td>
+            </tr>
+            <tr>
+              <td>Un día perfecto</td>
+              <td>Estelares</td>
+            </tr>
+            <tr>
+              <td>Hacer un puente</td>
+              <td>La Franela</td>
+            </tr>
+            <tr>
+              <td>Lo que me mata</td>
+              <td>La Franela</td>
+            </tr>
+            <tr>
+              <td>Pasarás</td>
+              <td>La Franela</td>
+            </tr>
+            <tr>
+              <td>Price for freedom</td>
+              <td>La Franela</td>
+            </tr>
+            <tr>
+              <td>Como un lobo</td>
+              <td>Guasones</td>
+            </tr>
+            <tr>
+              <td>Estupendo día</td>
+              <td>Guasones</td>
+            </tr>
+            <tr>
+              <td>Heaven or Hell</td>
+              <td>Guasones</td>
+            </tr>
+            <tr>
+              <td>Perdón</td>
+              <td>Guasones</td>
+            </tr>
+            <tr>
+              <td>En el camino</td>
+              <td>Kapanga</td>
+            </tr>
+            <tr>
+              <td>Calavera</td>
+              <td>Mancha De Rolando</td>
+            </tr>
+            <tr>
+              <td>Mis primeras páginas</td>
+              <td>Mancha De Rolando</td>
+            </tr>
+            <tr>
+              <td>La octava maravilla</td>
+              <td>Massacre</td>
+            </tr>
+            <tr>
+              <td>Tengo captura</td>
+              <td>Massacre</td>
+            </tr>
+            <tr>
+              <td>Al vacío</td>
+              <td>No Te Va Gustar</td>
+            </tr>
+            <tr>
+              <td>Arde</td>
+              <td>No Te Va Gustar</td>
+            </tr>
+            <tr>
+              <td>Pensar (vivo)</td>
+              <td>No Te Va Gustar</td>
+            </tr>
+            <tr>
+              <td>Tan lejos</td>
+              <td>No Te Va Gustar</td>
+            </tr>
+            <tr>
+              <td>Río extraño</td>
+              <td>O'connor</td>
+            </tr>
+            <tr>
+              <td>Nos Dijimos Todo</td>
+              <td>Once tiros</td>
+            </tr>
+            <tr>
+              <td>Capitan America (Vivo)</td>
+              <td>Las pelotas</td>
+            </tr>
+            <tr>
+              <td>Corderos en la noche (Vivo)</td>
+              <td>Las pelotas</td>
+            </tr>
+            <tr>
+              <td>Orugas (Vivo)</td>
+              <td>Las pelotas</td>
+            </tr>
+            <tr>
+              <td>Personalmente</td>
+              <td>Las pelotas</td>
+            </tr>
+            <tr>
+              <td>Si Supieras (Vivo)</td>
+              <td>Las pelotas</td>
+            </tr>
+            <tr>
+              <td>Ya No Estás</td>
+              <td>Las pelotas</td>
+            </tr>
+            <tr>
+              <td>Jaque Mate (Vivo)</td>
+              <td>Pier</td>
+            </tr>
+            <tr>
+              <td>Sacrificio Y Rock 'N Roll (Vivo)</td>
+              <td>Pier</td>
+            </tr>
+            <tr>
+              <td>El Círculo De Fuego</td>
+              <td>Rata Blanca</td>
+            </tr>
+            <tr>
+              <td>El Guardian De La Luz</td>
+              <td>Rata Blanca</td>
+            </tr>
+            <tr>
+              <td>La Banda De Rock And Roll</td>
+              <td>Ratones Paranoicos</td>
+            </tr>
+            <tr>
+              <td>Hey Bredda</td>
+              <td>Riddim</td>
+            </tr>
+            <tr>
+              <td>Tu Amor</td>
+              <td>Riddim</td>
+            </tr>
+            <tr>
+              <td>Algo</td>
+              <td>Los tipitos</td>
+            </tr>
+            <tr>
+              <td>Brujería</td>
+              <td>Los tipitos</td>
+            </tr>
+            <tr>
+              <td>Júrame</td>
+              <td>Los tipitos</td>
+            </tr>
+            <tr>
+              <td>Laberinto</td>
+              <td>Los tipitos</td>
+            </tr>
+            <tr>
+              <td>Se te nota</td>
+              <td>Los tipitos</td>
+            </tr>
+            <tr>
+              <td>Silencio</td>
+              <td>Los tipitos</td>
+            </tr>
+            <tr>
+              <td>Magia Blanca</td>
+              <td>Turf</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>¿Porqué esto existe?</h3>
+      <p>Fue una idea de preservar esto. Comenzó con Envido32 queriendo ver si se podía "crackear" el juego y convertir las canciones a un formato de Guitar Hero/Rock Band, y terminó con ElDainosor implementando un servidor para hacerlo funcional.</p>
+      <p>Todavía queda mucho por hacer. Pero mientras tanto, preservemos un poco de historia de Software Argentino. 🇦🇷</p>
+    </div>
+    <script src="/static/js/popper.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        // 
+        const urlParams = new URLSearchParams(window.location.search);
+        const accionRequest = urlParams.get('accion');
+        if (accionRequest === 'registro') {
+          const modalFalsoRegistro = document.getElementById('registroModal');
+          const modalRegistro = new bootstrap.Modal(modalFalsoRegistro);
+          modalRegistro.show();
+        }
+      });
+    </script>
+  </body>
+</html>
