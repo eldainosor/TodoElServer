@@ -11,7 +11,7 @@
 #                                      (nuevo server fantasma)
 
 # Inicializando Flask
-from flask import Flask, request, send_file, abort, redirect, url_for
+from flask import Flask, request, send_file, abort, redirect, url_for, send_from_directory
 import hashlib
 import json
 import math
@@ -206,7 +206,14 @@ def redir():
 
 @app.route('/website/index.php')
 def index():
-    return 'Si estás viendo esto, que vuelva bootleggers. #AndroidCustomROMs'
+    try:
+        # Ensure the file exists before serving
+        file_path = os.path.join(app.static_folder, 'erdtv.html')
+        if not os.path.isfile(file_path):
+            abort(404, description="Static HTML file not found.")
+        return send_from_directory(app.static_folder, 'erdtv.html')
+    except Exception as e:
+        return f"Error serving file: {e}", 500
 
 @app.route('/static/assets/<path:filename>')
 def serve_placeholder(filename):
