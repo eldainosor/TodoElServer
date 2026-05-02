@@ -333,3 +333,24 @@ datosExtraCanciones = {
 	}
 
 listaTicker = ["Volvió El Rock de Tu Vida!", "Imaginate estar jugando a El Rock de Tu Vida en pleno 2026", "Dato: Este juego se presentó en el día de la bandera en 2011", "Podés jugar tambien al Rock Band 3 Deluxe", "Podés jugar tambien al Clone Hero", "Podés jugar tambien al YARG", "Podés jugar tambien al Fortnite Festival", "Podés jugar tambien al Project Diva", "Podés jugar tambien al BetterGH3", "Saludos a la comunidad de Rock Band en Español", "Saludos a Envido32", "Saludos a _ivanj_", "ESTA LOCURAAAAAAAAAAAAAAAAAAAAAAAAA", "bolas", "Dato: Loaded.vg se transformó en Malditos Nerds", "Eliminado Herobrine", "Mirando desde la Torre Ader", "Las gemas no son comestibles", "Hipervelocidad? que es eso?", "Aprendiendo Assembler en Pacheco", "Gracias a PopArt Music por dar la licencia de estas canciones", "Pura Industria Nacional", "Viví la experiencia de interpretar los temas de tus bandas favoritas del rock nacional.", "Dato: Existen más de 60 canciones hechas para este juego", "Saludos a la gente de Lore Hero", "QEPD El Rock de tu vida - 2011/2014", "Milohax, Milohax, Aguante Milohax"]
+
+listaAds = [
+	{
+		'hash' : 'a330e2f4c5a40353848ab45185a0cfac',
+		'server': 'localhost',
+		'path': '/static/img/250x130img.png',
+		'place': 'mainmenu1'
+	},
+	{
+		'hash' : 'e47f47edc1c0b1ee727125e81a907d49',
+		'server': 'localhost',
+		'path': '/static/img/250x130img_2.png',
+		'place': 'mainmenu2'
+	},
+	{
+		'hash' : '4e9b96df440dd8c6984f363e43b49d01',
+		'server': 'localhost',
+		'path': '/static/img/1020x225img.png',
+		'place': 'loading'
+	}
+]

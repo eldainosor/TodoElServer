@@ -246,8 +246,7 @@ def game_rest():
 
         case 'getads':
             tipoContent = {
-                'userid': '000001',
-                'sessionid': requestData['sessionid']
+                'adverts': listaAds
             }
 
         case 'extra':
