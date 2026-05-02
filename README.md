@@ -27,16 +27,16 @@ Para la generación de `getallsongs` y `getauthorizedsongs` se requiere tener lo
 
 
 ## Instrucciones de instalación y uso
-Para poder usar este servidor, se recomienda usar Python 3.10 en adelante.
+Para poder usar este servidor, se recomienda usar Python 3.4 en adelante.
 ### Para ejecutar el script normalmente:
 1. Generar un entorno virtual de python
     ```
-    pip venv .venv
+    python -m venv .venv
     ```
 
 2. Instalar las siguientes dependencias:
 	```
-	pip install flask
+	pip install -r requirements.txt
 	```
 
 3. Una vez instalado, exportar el directorio en donde se está ejecutando:
@@ -62,7 +62,7 @@ Para poder usar este servidor, se recomienda usar Python 3.10 en adelante.
 
 2. Instalar PyInstaller en nuestro entorno virtual:
 	```
-	pip install pyinstaller
+	pip install -r requirements_build.txt
 	```
 
 3. Una vez instalado, empaquetar el script
