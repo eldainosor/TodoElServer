@@ -256,9 +256,17 @@ def game_rest():
         }
 
     elif tipoRequest=="getads":
+        # Flag para activar las falsas publicidades
+        mostrarAds=False
+
+        # Empecemos con el código para generar ads
         tipoContent = {
-            'adverts': listaAds
+            'adverts': []
         }
+        if mostrarAds:
+            tipoContent = {
+                'adverts': listaAds
+            }
 
     elif tipoRequest=="extra":
         tipoContent = {}
