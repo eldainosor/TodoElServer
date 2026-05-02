@@ -179,83 +179,83 @@ def game_rest():
     tipoResult = resultNormal
 
     # Escribiendo respuestas según la ocasión
-    match tipoRequest:
-        case 'login':
-            tipoContent = {
-                'userid': '000001',
-                'sessionid': '1',
-                'nick': datosRequest['username']
-            }
+    if tipoRequest=="login": 
+        tipoContent = { 
+            'userid': '000001',
+            'sessionid': '1', 
+            'nick': datosRequest['username'] 
+        }
 
-        case 'logout':
-            tipoContent = {
-                'userid': '000001',
-                'sessionid': '0'
-            }
+    elif tipoRequest=="logout":
+        tipoContent = {
+            'userid': '000001',
+            'sessionid': '0'
+        }
 
-        case 'getticker':
-            strTicker = listaTicker[random.randrange(1, len(listaTicker))]
-            if strTicker != "bolas":
-                strTicker = strTicker.upper()
+    elif tipoRequest=="getticker":
+        strTicker = listaTicker[random.randrange(1, len(listaTicker))]
+        if strTicker != "bolas":
+            strTicker = strTicker.upper()
 
-            tipoContent = {
-                'ticker': [strTicker]
-            }
+        tipoContent = {
+            'ticker': [strTicker]
+        }
 
-        case 'getallsongs':
-            tipoContent = {
-                'songs': dictCancionesListas,
-                'table': ""
-            }
+    elif tipoRequest=="getallsongs":
+        tipoContent = {
+            'songs': dictCancionesListas,
+            'table': ""
+        }
 
-        case 'getauthorizedsongs':
-            tipoContent = {
-                'songs': dictCancionesAutorizadas
-            }
+    elif tipoRequest=="getauthorizedsongs":
+        tipoContent = {
+        'songs': dictCancionesAutorizadas
+        }
 
-        case 'submithighscore':
-            # TODO: Generacion de hash propiamente hecha - ALGORITMO TEMPORAL HECHO CON IA
-            # Generación de los hashes, PENDIENTE VER QUE PASA EN ESTA REQ
-            #saltPuntajes = bytes.fromhex("B52167B41E4589FEC5AA94")
-            #payload = str("08CD95C9").encode('ascii') + str(2011).encode('ascii') + saltPuntajes
-            md5_handler = hashlib.md5()
-            md5_handler.update(str(requestData))
-            tipoContent = {
-                'hash': str(md5_handler.hexdigest().upper())
-            }
+    elif tipoRequest=="submithighscore":
+        # TODO: Generacion de hash propiamente hecha - ALGORITMO TEMPORAL HECHO CON IA
+        # Generación de los hashes, PENDIENTE VER QUE PASA EN ESTA REQ
+        #saltPuntajes = bytes.fromhex("B52167B41E4589FEC5AA94")
+        #payload = str("08CD95C9").encode('ascii') + str(2011).encode('ascii') + saltPuntajes
+        md5_handler = hashlib.md5()
+        md5_handler.update(str(requestData))
 
-        case 'gethighscorepos':
-            tipoContent = {
-                'songid': datosRequest['songid'],
-                'instrumentid': datosRequest['instrumentid'],
-                'level': datosRequest['level'],
-                'score': '0',
-                'gamemode': datosRequest['gamemode']
-            }
+        tipoContent = {
+            'hash': str(md5_handler.hexdigest().upper())
+        }
 
-        case 'gethighscore':
-            tipoContent = {
-                'songid': datosRequest['songid'],
-                'instrumentid': datosRequest['instrumentid'],
-                'level': datosRequest['level'],
-                'gamemode': datosRequest['gamemode'],
-                'startpos': '0',
-                'count': '0',
-                'userid': '000001'
-            }
+    elif tipoRequest=="gethighscorepos":
+        tipoContent = {
+            'songid': datosRequest['songid'],
+            'instrumentid': datosRequest['instrumentid'],
+            'level': datosRequest['level'],
+            'score': '0',
+            'gamemode': datosRequest['gamemode']
+        }
 
-        case 'getads':
-            tipoContent = {
-                'userid': '000001',
-                'sessionid': requestData['sessionid']
-            }
+    elif tipoRequest=="gethighscore":
+        tipoContent = {
+            'songid': datosRequest['songid'],
+            'instrumentid': datosRequest['instrumentid'],
+            'level': datosRequest['level'],
+            'gamemode': datosRequest['gamemode'],
+            'startpos': '0',
+            'count': '0',
+            'userid': '000001'
+        }
 
-        case 'extra':
-            tipoContent = {}
+    elif tipoRequest=="getads":
+        tipoContent = {
+            'userid': '000001',
+            'sessionid': requestData['sessionid']
+        }
 
-        case _:
-            tipoResult = resultFallback
-            tipoContent = {}
+    elif tipoRequest=="extra":
+        tipoContent = {}
+
+    else:
+        tipoResult = resultFallback
+        tipoContent = {}
 
     respuestaFormateada = {
         'result': tipoResult,
