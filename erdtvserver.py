@@ -245,9 +245,18 @@ def game_rest():
             }
 
         case 'getads':
+            # Flag para activar las falsas publicidades
+            mostrarAds=False
+
+            # Empecemos con el código para generar ads
             tipoContent = {
-                'adverts': listaAds
+                'adverts': []
             }
+
+            if mostrarAds:
+                tipoContent = {
+                    'adverts': listaAds
+                }
 
         case 'extra':
             tipoContent = {}
