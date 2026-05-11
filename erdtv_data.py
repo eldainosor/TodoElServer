@@ -336,13 +336,13 @@ listaTicker = ["Volvió El Rock de Tu Vida!", "Imaginate estar jugando a El Rock
 
 listaAds = [
 	{
-		'hash' : 'e3f6d4e0fd1b030969cd93cfb9712dbb',
+		'hash' : '6447562a16c138466039af199694c431',
 		'server': 'localhost',
 		'path': '/static/img/yarg_fakepromo_erdtv.png',
 		'place': 'loading'
 	},
 	{
-		'hash' : 'ad06c5435f28910e9834f883d3c0e73c',
+		'hash' : '5d73418d808dd4726aaf2a5e4cf62170',
 		'server': 'localhost',
 		'path': '/static/img/ter_permanent_ad.png',
 		'place': 'mainmenu2'
