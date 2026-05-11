@@ -11,7 +11,7 @@
 #                                      (nuevo server fantasma)
 
 # Inicializando Flask
-from flask import Flask, request
+from flask import Flask, request, send_file, abort
 import hashlib
 import json
 import math
@@ -39,7 +39,7 @@ from erdtv_data import *
 # Vamos a hacer todo el trabajo con los archivos de una sola vez
 #
 # Declaramos los diccionarios necesarios
-dictCancionesListas = {}
+dictCancionesCatalogo = {}
 dictCancionesAutorizadas = {}
 
 # CONCEPTO:
@@ -57,6 +57,8 @@ def getAllSongsData():
     # Primero, vamos a establecer los datos necesarios para este proceso
     # siendo contadores, paths, etc.
     dirCanciones=os.getenv('TES_DIR_JUEGO', os.path.dirname(sys.executable))
+    pathBandasInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'band')
+    pathDiscosInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'disc')
     pathCancionesInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'song')
     # Prefijo necesario para validar los hashes de authorizedsongs
     prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
@@ -89,10 +91,10 @@ def getAllSongsData():
                     #songidExtraida = struct.unpack('<Q', f.read(8))[0]   # 8 bytes, little-endian
                     f.seek(0x1C)
                     bandaExtraida = struct.unpack('<Q', f.read(8))[0]
-                    f.seek(0x23)
+                    f.seek(0x24)
                     discoExtraido = struct.unpack('<Q', f.read(8))[0]
                     f.seek(0x2C)
-                    anioExtraido = struct.unpack('<H', f.read(2))[0]     # 2 bytes, little-endian
+                    anioExtraido = struct.unpack('<I', f.read(4))[0]     # 4 bytes, little-endian
 
                     # Leer título (UTF-16LE hasta doble nulo)
                     f.seek(0x30)
@@ -124,21 +126,51 @@ def getAllSongsData():
                 dictCancionesAutorizadas.update(nuevaCancionAuth)
                 countCancionesAutorizadas += 1
 
+                archivoBanda = Path(pathBandasInstaladas) / f"{format(bandaExtraida, 'X')}.band"
+                if archivoBanda:
+                    with open(str(archivoBanda), "rb") as f:
+                        f.seek(4)  # skip magic
+                        f.read(4)  # version
+                        band_id = struct.unpack('<Q', f.read(8))[0]
+                        band_name_raw = f.read(0x7F0)
+                        band_name_extraido = band_name_raw.decode('utf-16-le').rstrip('\x00')
+
+                archivoDisco = Path(pathDiscosInstaladas) / f"{format(discoExtraido, 'X')}.disc"
+                if archivoDisco:
+                    with open(str(archivoDisco), "rb") as f:
+                        f.seek(4)  # skip magic
+                        f.read(4)  # version
+                        disc_id = struct.unpack('<Q', f.read(8))[0]
+                        f.read(8)  # band_id
+                        disc_name_raw = f.read(0x100)
+                        disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
+
+                cancion_tapa_file = "/static/assets/0" + songidArchivo + ".cover"
+                cancion_prev_file = "/static/assets/0" + songidArchivo + ".prev"
+
                 # Guardar la cancion disponible con sus metadatos
-                nuevaCancionLista = {
+                nuevaCancionCatalogo = {
                      'songid': songidArchivo, 
-                     'banda': bandaExtraida, 
+                     'banda': band_name_extraido, 
                      'cancion': tituloExtraido, 
-                     'disco': discoExtraido, 
+                     'disco': disc_name_extraido, 
                      'anio': str(anioExtraido), 
                      'dif_gral': str(difGralCalculada), 
                      'dif_guitarra': str(difGuitarraExtraida), 
                      'dif_bajo': str(difBajoExtraida), 
                      'dif_bateria': str(difBateriaExtraida), 
-                     'dif_voz': str(difVozExtraida)
+                     'dif_voz': str(difVozExtraida),
+                     'nueva': 'no',
+                     'tapa_server': 'localhost',
+                     'tapa_path': cancion_tapa_file,
+                     'tapa_hash': '5dfc4a1d4666de864f05e14cb2665e02',
+                     'preview_server': 'localhost',
+                     'preview_path': cancion_prev_file,
+                     'preview_hash': '9bbd8bf5beb3b8cd94c8b666aa6b1580',
+                     'url': 'http://' + request.host_url + '/'
                 }
-                nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionLista}
-                dictCancionesListas.update(nuevaCancionDisp)
+                nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
+                dictCancionesCatalogo.update(nuevaCancionDisp)
                 countCancionesDisponibles += 1
         else:
             print("No se encontraron archivos .cbr en " + pathCancionesInstaladas + ". El juego crashea si no tiene canciones.")
@@ -153,7 +185,7 @@ def getAllSongsData():
 
             # Añadiendo esto como un item nuevo
             nuevaCancion = {str(countCancionesDisponibles): cancionDisp}
-            dictCancionesListas.update(nuevaCancion)
+            dictCancionesCatalogo.update(nuevaCancion)
             countCancionesDisponibles += 1
     print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.") 
 
@@ -163,11 +195,24 @@ def getAllSongsData():
 def index():
     return 'Si estás viendo esto, que vuelva bootleggers. #AndroidCustomROMs'
 
+@app.route('/static/assets/<path:filename>')
+def serve_placeholder(filename):
+    if filename.endswith('.cover'):
+        path = 'static/assets/placeholder_cover.png'
+    elif filename.endswith('.prev'):
+        path = 'static/assets/placeholder_preview.wav'
+    else:
+        abort(404)
+    with open(path, 'rb') as f:
+        data = f.read()
+
+    print("ASSET", filename, len(data), hashlib.md5(data).hexdigest())
+    return send_file(path, mimetype='application/octet-stream')
 
 @app.route('/game/rest.php', methods=['POST'])
 def game_rest():
     # Inicializando las listas de canciones solo si no tenemos datos
-    if not dictCancionesAutorizadas or not dictCancionesListas:
+    if not dictCancionesAutorizadas or not dictCancionesCatalogo:
         getAllSongsData()
 
     # Extraer las peticiones del juego.
@@ -203,7 +248,7 @@ def game_rest():
             #             Esto hace que se re-inicializen si el server está abierto.
             #             (ideal para customs o refrescar nuevas canciones).
             dictCancionesAutorizadas.clear()
-            dictCancionesListas.clear()
+            dictCancionesCatalogo.clear()
             tipoContent = {
                 'userid': '000001',
                 'sessionid': '0'
@@ -220,7 +265,7 @@ def game_rest():
 
         case 'getallsongs':
             tipoContent = {
-                'songs': dictCancionesListas,
+                'songs': dictCancionesCatalogo,
                 'table': ""
             }
 
