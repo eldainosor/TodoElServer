@@ -31,12 +31,12 @@ Para poder usar este servidor, se recomienda usar Python 3.10 en adelante.
 ### Para ejecutar el script normalmente:
 1. Generar un entorno virtual de python
     ```
-    pip venv .venv
+    python -m venv .venv
     ```
 
 2. Instalar las siguientes dependencias:
 	```
-	pip install flask
+	pip install flask python-dotenv
 	```
 
 3. Una vez instalado, exportar el directorio en donde se está ejecutando:
