@@ -67,7 +67,7 @@ Para poder usar este servidor, se recomienda usar Python 3.10 en adelante.
 
 3. Una vez instalado, empaquetar el script
 	```
-	pyinstaller --onefile --name TodoElServer --icon=todoelrock.ico erdtvserver.py 
+	pyinstaller --onefile --name TodoElServer --icon=todoelrock.ico  --add-data "static;static" erdtvserver.py 
 	```
 
 4. Mover el binario que se encuentra en dist a la carpeta de instalación del juego.

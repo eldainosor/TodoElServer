@@ -20,7 +20,18 @@ import random
 import struct
 import sys
 from pathlib import Path
-app = Flask(__name__)
+
+# Necesario para exportar cosas estáticas
+def get_bundle_dir():
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    if hasattr(sys, '_MEIPASS'):
+        return sys._MEIPASS
+    return os.path.abspath(".")
+
+# Declaración inicial de la app
+app = Flask(__name__,
+            static_url_path='/static',
+            static_folder=os.path.join(get_bundle_dir(), 'static'))
 
 # Importando datos del juego y otras cosas
 from erdtv_data import *
