@@ -11,7 +11,7 @@
 #                                      (nuevo server fantasma)
 
 # Inicializando Flask
-from flask import Flask, request
+from flask import Flask, request, send_file, abort
 import hashlib
 import json
 import math
@@ -46,6 +46,8 @@ def getAllSongsData():
     # Primero, vamos a establecer los datos necesarios para este proceso
     # siendo contadores, paths, etc.
     dirCanciones=os.getenv('TES_DIR_JUEGO', os.path.dirname(sys.executable))
+    pathBandasInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'band')
+    pathDiscosInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'disc')
     pathCancionesInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'song')
     # Prefijo necesario para validar los hashes de authorizedsongs
     prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
@@ -78,10 +80,10 @@ def getAllSongsData():
                     #songidExtraida = struct.unpack('<Q', f.read(8))[0]   # 8 bytes, little-endian
                     f.seek(0x1C)
                     bandaExtraida = struct.unpack('<Q', f.read(8))[0]
-                    f.seek(0x23)
+                    f.seek(0x24)
                     discoExtraido = struct.unpack('<Q', f.read(8))[0]
                     f.seek(0x2C)
-                    anioExtraido = struct.unpack('<H', f.read(2))[0]     # 2 bytes, little-endian
+                    anioExtraido = struct.unpack('<I', f.read(4))[0]     # 4 bytes, little-endian
 
                     # Leer título (UTF-16LE hasta doble nulo)
                     f.seek(0x30)
@@ -113,18 +115,48 @@ def getAllSongsData():
                 dictCancionesAutorizadas.update(nuevaCancionAuth)
                 countCancionesAutorizadas += 1
 
+                archivoBanda = Path(pathBandasInstaladas) / f"{format(bandaExtraida, 'X')}.band"
+                if archivoBanda:
+                    with open(str(archivoBanda), "rb") as f:
+                        f.seek(4)  # skip magic
+                        f.read(4)  # version
+                        band_id = struct.unpack('<Q', f.read(8))[0]
+                        band_name_raw = f.read(0x7F0)
+                        band_name_extraido = band_name_raw.decode('utf-16-le').rstrip('\x00')
+
+                archivoDisco = Path(pathDiscosInstaladas) / f"{format(discoExtraido, 'X')}.disc"
+                if archivoDisco:
+                    with open(str(archivoDisco), "rb") as f:
+                        f.seek(4)  # skip magic
+                        f.read(4)  # version
+                        disc_id = struct.unpack('<Q', f.read(8))[0]
+                        f.read(8)  # band_id
+                        disc_name_raw = f.read(0x100)
+                        disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
+
+                cancion_tapa_file = "/static/assets/0" + songidArchivo + ".cover"
+                cancion_prev_file = "/static/assets/0" + songidArchivo + ".prev"
+
                 # Guardar la cancion disponible con sus metadatos
                 nuevaCancionLista = {
                      'songid': songidArchivo, 
-                     'banda': bandaExtraida, 
+                     'banda': band_name_extraido, 
                      'cancion': tituloExtraido, 
-                     'disco': discoExtraido, 
+                     'disco': disc_name_extraido, 
                      'anio': str(anioExtraido), 
                      'dif_gral': str(difGralCalculada), 
                      'dif_guitarra': str(difGuitarraExtraida), 
                      'dif_bajo': str(difBajoExtraida), 
                      'dif_bateria': str(difBateriaExtraida), 
-                     'dif_voz': str(difVozExtraida)
+                     'dif_voz': str(difVozExtraida),
+                     'nueva': '0',
+                     'tapa_server': 'localhost',
+                     'tapa_path': cancion_tapa_file,
+                     'tapa_hash': '78101ff71909ed9cdb8d86bf7ef2f91b',
+                     'preview_server': 'localhost',
+                     'preview_path': cancion_prev_file,
+                     'preview_hash': 'e4ad642a6b59a4173eed7525bab39c98',
+                     'url': 'localhost'
                 }
                 nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionLista}
                 dictCancionesListas.update(nuevaCancionDisp)
@@ -152,6 +184,14 @@ def getAllSongsData():
 def index():
     return 'Si estás viendo esto, que vuelva bootleggers. #AndroidCustomROMs'
 
+@app.route('/static/assets/<path:filename>')
+def serve_placeholder(filename):
+    if filename.endswith('.cover'):
+        return send_file('static/assets/8CD48B7478B27A8.cover', mimetype='application/octet-stream')
+    elif filename.endswith('.prev'):
+        return send_file('static/assets/8CD48B7478B27A8.prev', mimetype='application/octet-stream')
+    else:
+        abort(404)
 
 @app.route('/game/rest.php', methods=['POST'])
 def game_rest():

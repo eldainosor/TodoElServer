@@ -322,15 +322,15 @@ listaCancionesAutorizadas = [
 
 # Esto es un fallback de los datos que NO vamos a llenar de la lista de canciones... pero el juego las necesita.
 datosExtraCanciones = {
-	'nueva': '0',
-	'tapa_server': '',
-	'tapa_path': '',
-	'tapa_hash': '',
-	'preview_server': '',
-	'preview_path': '',
-	'preview_hash': '',
-	'url': ''
-	}
+     'nueva': 'no',
+     'tapa_server': 'localhost',
+     'tapa_path': '/static/assets/placeholder_cover.png',
+     'tapa_hash': '5dfc4a1d4666de864f05e14cb2665e02',
+     'preview_server': 'localhost',
+     'preview_path': '/static/assets/placeholder_preview.wav',
+     'preview_hash': '60fac5b1b45c13679c88f4601aa882f4',
+     'url': 'localhost'
+}
 
 listaTicker = ["Volvió El Rock de Tu Vida!", "Imaginate estar jugando a El Rock de Tu Vida en pleno 2026", "Dato: Este juego se presentó en el día de la bandera en 2011", "Podés jugar tambien al Rock Band 3 Deluxe", "Podés jugar tambien al Clone Hero", "Podés jugar tambien al YARG", "Podés jugar tambien al Fortnite Festival", "Podés jugar tambien al Project Diva", "Podés jugar tambien al BetterGH3", "Saludos a la comunidad de Rock Band en Español", "Saludos a Envido32", "Saludos a _ivanj_", "ESTA LOCURAAAAAAAAAAAAAAAAAAAAAAAAA", "bolas", "Dato: Loaded.vg se transformó en Malditos Nerds", "Eliminado Herobrine", "Mirando desde la Torre Ader", "Las gemas no son comestibles", "Hipervelocidad? que es eso?", "Aprendiendo Assembler en Pacheco", "Gracias a PopArt Music por dar la licencia de estas canciones", "Pura Industria Nacional", "Viví la experiencia de interpretar los temas de tus bandas favoritas del rock nacional.", "Dato: Existen más de 60 canciones hechas para este juego", "Saludos a la gente de Lore Hero", "QEPD El Rock de tu vida - 2011/2014", "Milohax, Milohax, Aguante Milohax"]
 
