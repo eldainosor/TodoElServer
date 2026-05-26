@@ -28,7 +28,7 @@ from erdtv_data import *
 # Vamos a hacer todo el trabajo con los archivos de una sola vez
 #
 # Declaramos los diccionarios necesarios
-dictCancionesListas = {}
+dictCancionesCatalogo = {}
 dictCancionesAutorizadas = {}
 
 # CONCEPTO:
@@ -138,7 +138,7 @@ def getAllSongsData():
                 cancion_prev_file = "/static/assets/0" + songidArchivo + ".prev"
 
                 # Guardar la cancion disponible con sus metadatos
-                nuevaCancionLista = {
+                nuevaCancionCatalogo = {
                      'songid': songidArchivo, 
                      'banda': band_name_extraido, 
                      'cancion': tituloExtraido, 
@@ -149,17 +149,17 @@ def getAllSongsData():
                      'dif_bajo': str(difBajoExtraida), 
                      'dif_bateria': str(difBateriaExtraida), 
                      'dif_voz': str(difVozExtraida),
-                     'nueva': '0',
+                     'nueva': 'no',
                      'tapa_server': 'localhost',
                      'tapa_path': cancion_tapa_file,
-                     'tapa_hash': '78101ff71909ed9cdb8d86bf7ef2f91b',
+                     'tapa_hash': '5dfc4a1d4666de864f05e14cb2665e02',
                      'preview_server': 'localhost',
                      'preview_path': cancion_prev_file,
-                     'preview_hash': 'e4ad642a6b59a4173eed7525bab39c98',
-                     'url': 'localhost'
+                     'preview_hash': '9bbd8bf5beb3b8cd94c8b666aa6b1580',
+                     'url': 'http://' + request.host_url + '/'
                 }
-                nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionLista}
-                dictCancionesListas.update(nuevaCancionDisp)
+                nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
+                dictCancionesCatalogo.update(nuevaCancionDisp)
                 countCancionesDisponibles += 1
         else:
             print("No se encontraron archivos .cbr en " + pathCancionesInstaladas + ". El juego crashea si no tiene canciones.")
@@ -174,7 +174,7 @@ def getAllSongsData():
 
             # Añadiendo esto como un item nuevo
             nuevaCancion = {str(countCancionesDisponibles): cancionDisp}
-            dictCancionesListas.update(nuevaCancion)
+            dictCancionesCatalogo.update(nuevaCancion)
             countCancionesDisponibles += 1
     print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.") 
 
@@ -187,16 +187,21 @@ def index():
 @app.route('/static/assets/<path:filename>')
 def serve_placeholder(filename):
     if filename.endswith('.cover'):
-        return send_file('static/assets/8CD48B7478B27A8.cover', mimetype='application/octet-stream')
+        path = 'static/assets/placeholder_cover.png'
     elif filename.endswith('.prev'):
-        return send_file('static/assets/8CD48B7478B27A8.prev', mimetype='application/octet-stream')
+        path = 'static/assets/placeholder_preview.wav'
     else:
         abort(404)
+    with open(path, 'rb') as f:
+        data = f.read()
+
+    print("ASSET", filename, len(data), hashlib.md5(data).hexdigest())
+    return send_file(path, mimetype='application/octet-stream')
 
 @app.route('/game/rest.php', methods=['POST'])
 def game_rest():
     # Inicializando las listas de canciones solo si no tenemos datos
-    if not dictCancionesAutorizadas or not dictCancionesListas:
+    if not dictCancionesAutorizadas or not dictCancionesCatalogo:
         getAllSongsData()
 
     # Extraer las peticiones del juego.
@@ -232,7 +237,7 @@ def game_rest():
             #             Esto hace que se re-inicializen si el server está abierto.
             #             (ideal para customs o refrescar nuevas canciones).
             dictCancionesAutorizadas.clear()
-            dictCancionesListas.clear()
+            dictCancionesCatalogo.clear()
             tipoContent = {
                 'userid': '000001',
                 'sessionid': '0'
@@ -249,7 +254,7 @@ def game_rest():
 
         case 'getallsongs':
             tipoContent = {
-                'songs': dictCancionesListas,
+                'songs': dictCancionesCatalogo,
                 'table': ""
             }
 
