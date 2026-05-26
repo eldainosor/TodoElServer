@@ -198,6 +198,11 @@ def game_rest():
         }
 
     elif tipoRequest=="logout":
+        # WORKAROUND: Limpiar las variables de canciones si cerramos el juego.
+        #             Esto hace que se re-inicializen si el server está abierto.
+        #             (ideal para customs o refrescar nuevas canciones).
+        dictCancionesAutorizadas.clear()
+        dictCancionesListas.clear()
         tipoContent = {
             'userid': '000001',
             'sessionid': '0'
