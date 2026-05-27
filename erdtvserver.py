@@ -41,6 +41,7 @@ from erdtv_data import *
 # Declaramos los diccionarios necesarios
 dictCancionesCatalogo = {}
 dictCancionesAutorizadas = {}
+listAdsFinal = {}
 
 # CONCEPTO:
 #    El juego tiene los metadatos de sus canciones en los archivos CBR,
@@ -307,13 +308,84 @@ def game_rest():
 
     elif tipoRequest=="getads":
         # Flag para activar las falsas publicidades
-        mostrarAds=False
+        mostrarAdsAdicionales=False
 
-        # Empecemos con el código para generar ads
-        tipoContent = {
-            'adverts': []
-        }
-        if mostrarAds:
+        if mostrarAdsAdicionales:
+            # Añadiendo variables principales
+            pathImagenesServer = os.path.join(get_bundle_dir(), 'static', 'img')
+            prefixImagenesAds = "erdtv_ad_"
+            listaAdsMainMenu = list(Path(pathImagenesServer).glob(prefixImagenesAds + "mainmenu_*.png"))
+            listaAdsMainMenu2 = list(Path(pathImagenesServer).glob(prefixImagenesAds + "mainmenu2_*.png"))
+            listaAdsLoading = list(Path(pathImagenesServer).glob(prefixImagenesAds + "loading_*.png"))
+            listAdsFinal = []
+
+            # Hagamos que aparezcan random
+            magicNumMainMenu = random.randrange(1, 5)
+            magicNumMainMenu2 = random.randrange(1, 5)
+            magicNumLoading = random.randrange(1, 3)
+
+            if listaAdsMainMenu and magicNumMainMenu == 4:
+                # que ad vamos a elegir?
+                adSeleccionada = listaAdsMainMenu[random.randrange(1, len(listaAdsMainMenu))]
+                # sacar el md5 del ad
+                with open(str(adSeleccionada), 'rb') as f:
+                    # Necesario para el hash de la cancion
+                    datosAd = f.read()
+                md5AdMainMenu = hashlib.md5(datosAd).hexdigest()
+                # una vez hecho todo, vamos a mandarle la lista
+                nuevaAd = {
+                    'hash' : md5AdMainMenu,
+                    'server': 'localhost',
+                    'path': '/static/img/' + adSeleccionada.stem + '.png',
+                    'place': 'mainmenu1'
+                }
+                listAdsFinal.append(nuevaAd)
+
+            if listaAdsMainMenu2:
+                if magicNumMainMenu2 == 3:
+                    # que ad vamos a elegir?
+                    adSeleccionada = listaAdsMainMenu2[random.randrange(1, len(listaAdsMainMenu2))]
+                    # sacar el md5 del ad
+                    with open(str(adSeleccionada), 'rb') as f:
+                        # Necesario para el hash de la cancion
+                        datosAd = f.read()
+                    md5AdMainMenu2 = hashlib.md5(datosAd).hexdigest()
+                    # una vez hecho todo, vamos a mandarle la lista
+                    nuevaAd = {
+                        'hash' : md5AdMainMenu2,
+                        'server': 'localhost',
+                        'path': '/static/img/' + adSeleccionada.stem + '.png',
+                        'place': 'mainmenu2'
+                    }
+                else:
+                    nuevaAd = listaAdsPermanente[0]
+                listAdsFinal.append(nuevaAd)
+
+            if listaAdsLoading:
+                if magicNumLoading == 2:
+                    # que ad vamos a elegir?
+                    adSeleccionada = listaAdsLoading[random.randrange(1, len(listaAdsLoading))]
+                    # sacar el md5 del ad
+                    with open(str(adSeleccionada), 'rb') as f:
+                        # Necesario para el hash de la cancion
+                        datosAd = f.read()
+                    md5AdLoading = hashlib.md5(datosAd).hexdigest()
+                    # una vez hecho todo, vamos a mandarle la lista
+                    nuevaAd = {
+                        'hash' : md5AdLoading,
+                        'server': 'localhost',
+                        'path': '/static/img/' + adSeleccionada.stem + '.png',
+                        'place': 'loading'
+                    }
+                else:
+                    nuevaAd = listaAdsPermanente[1]
+                listAdsFinal.append(nuevaAd)
+
+            # Una vez que ya está todo, enviar la lista definitiva
+            tipoContent = {
+                'adverts': listAdsFinal
+            }
+        else:
             tipoContent = {
                 'adverts': listaAdsPermanente
             }
