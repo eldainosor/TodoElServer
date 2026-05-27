@@ -334,8 +334,9 @@ datosExtraCanciones = {
 
 listaTicker = ["Volvió El Rock de Tu Vida!", "Imaginate estar jugando a El Rock de Tu Vida en pleno 2026", "Dato: Este juego se presentó en el día de la bandera en 2011", "Podés jugar tambien al Rock Band 3 Deluxe", "Podés jugar tambien al Clone Hero", "Podés jugar tambien al YARG", "Podés jugar tambien al Fortnite Festival", "Podés jugar tambien al Project Diva", "Podés jugar tambien al BetterGH3", "Saludos a la comunidad de Rock Band en Español", "Saludos a Envido32", "Saludos a _ivanj_", "ESTA LOCURAAAAAAAAAAAAAAAAAAAAAAAAA", "bolas", "Dato: Loaded.vg se transformó en Malditos Nerds", "Eliminado Herobrine", "Mirando desde la Torre Ader", "Las gemas no son comestibles", "Hipervelocidad? que es eso?", "Aprendiendo Assembler en Pacheco", "Gracias a PopArt Music por dar la licencia de estas canciones", "Pura Industria Nacional", "Viví la experiencia de interpretar los temas de tus bandas favoritas del rock nacional.", "Dato: Existen más de 60 canciones hechas para este juego", "Saludos a la gente de Lore Hero", "QEPD El Rock de tu vida - 2011/2014", "Milohax, Milohax, Aguante Milohax"]
 
-listaAds = [
+listaAdsPermanente = [
 	{
+<<<<<<< HEAD
 		'hash' : '6447562a16c138466039af199694c431',
 		'server': 'localhost',
 		'path': '/static/img/yarg_fakepromo_erdtv.png',
@@ -347,4 +348,17 @@ listaAds = [
 		'path': '/static/img/ter_permanent_ad.png',
 		'place': 'mainmenu2'
 	}
+=======
+		'hash' : '054d8d024d9e07a298bac1b6fab9cf79',
+		'server': 'localhost',
+		'path': '/static/img/erdtv_todoelrock.png',
+		'place': 'mainmenu2'
+	},
+	{
+		'hash' : 'a7acb04a99bc648111e25e59d855ce1f',
+		'server': 'localhost',
+		'path': '/static/img/erdtv_todoelrock_loading.png',
+		'place': 'loading'
+	},
+>>>>>>> 427d06b (Añadiendo un poco de branding de TodoElRock)
 ]

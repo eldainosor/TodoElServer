@@ -315,7 +315,7 @@ def game_rest():
         }
         if mostrarAds:
             tipoContent = {
-                'adverts': listaAds
+                'adverts': listaAdsPermanente
             }
 
     elif tipoRequest=="extra":
