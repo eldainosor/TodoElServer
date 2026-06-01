@@ -149,7 +149,7 @@ def getAllSongsData():
                 cancion_tapa_file = "/static/assets/0" + songidArchivo + ".cover"
                 cancion_prev_file = "/static/assets/0" + songidArchivo + ".prev"
 
-                urlCancion = request.host_url
+                urlCancion = request.host_url + "website/index.php"
 
                 if songidArchivo in lista_songids_disco_2011:
                     urlCancion = urlCancion + "?action=cancion_disco1"
