@@ -168,7 +168,7 @@ def getAllSongsData():
                      'preview_server': 'localhost',
                      'preview_path': cancion_prev_file,
                      'preview_hash': '9bbd8bf5beb3b8cd94c8b666aa6b1580',
-                     'url': 'http://' + request.host_url + '/'
+                     'url': request.host_url
                 }
                 nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
                 dictCancionesCatalogo.update(nuevaCancionDisp)
