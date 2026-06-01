@@ -32,6 +32,46 @@
         </div>
       </div>
     </div>
+    <!-- Modal para el disco 1 -->
+    <div class="modal fade" id="disco1Modal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Esta canción se encuentra en el disco 1</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <img class="img-fluid rounded" src="/static/img/erdtv_2011_disc_small.jpg" alt="ERDTV Disco 1 - 2011">
+            <p>Para poder acceder a esta canción, vas a tener que descargar el disco que lo tiene.</p>
+            <p>Si querés evitar re-instalar el juego, podés copiar la carpeta de <b>mozart</b> que se encuentra en el disco (en <code>install/data</code>) y copiarlo en donde tengas instaldo el juego (dentro de la carpeta <code>data</code>) </p>
+            <a class="btn btn-primary" href="https://archive.org/details/erdtv_release_2011" role="button">Obtener el disco en Archive.org</a>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal para el disco 2 -->
+    <div class="modal fade" id="disco2Modal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Esta canción se encuentra en el disco 2</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <img class="img-fluid rounded" src="/static/img/erdtv_2012_disc_small.jpg" alt="ERDTV Disco 2 - 2012">
+            <p>Para poder acceder a esta canción, vas a tener que descargar el disco que lo tiene.</p>
+            <p>Si querés evitar re-instalar el juego, podés copiar la carpeta de <b>mozart</b> que se encuentra en el disco (en <code>install/data</code>) y copiarlo en donde tengas instaldo el juego (dentro de la carpeta <code>data</code>) </p>
+            <a class="btn btn-primary" href="https://archive.org/details/erdtv_release_2012" role="button">Obtener el disco en Archive.org</a>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="container-fluid">
       <h1>El Rock de Tu Vida - Revival de TodoElServer</h1>
       <h3>Introducción</h3>
@@ -290,6 +330,14 @@
           const modalFalsoRegistro = document.getElementById('registroModal');
           const modalRegistro = new bootstrap.Modal(modalFalsoRegistro);
           modalRegistro.show();
+        } else if (accionRequest === 'cancion_disco1') {
+          const modalDisco1 = document.getElementById('disco1Modal');
+          const modalDescargaDisco1 = new bootstrap.Modal(modalDisco1);
+          modalDescargaDisco1.show();
+        } else if (accionRequest === 'cancion_disco2') {
+          const modalDisco2 = document.getElementById('disco2Modal');
+          const modalDescargaDisco2 = new bootstrap.Modal(modalDisco2);
+          modalDescargaDisco2.show();
         }
       });
     </script>
