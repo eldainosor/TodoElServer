@@ -149,6 +149,15 @@ def getAllSongsData():
                 cancion_tapa_file = "/static/assets/0" + songidArchivo + ".cover"
                 cancion_prev_file = "/static/assets/0" + songidArchivo + ".prev"
 
+                urlCancion = request.host_url
+
+                if songidArchivo in lista_songids_disco_2011:
+                    urlCancion = urlCancion + "?action=cancion_disco1"
+                elif songidArchivo in lista_songids_disco_2012:
+                    urlCancion = urlCancion + "?action=cancion_disco2"
+
+                flagCancionNueva = "si" if not request.host_url in urlCancion else "no"
+
                 # Guardar la cancion disponible con sus metadatos
                 nuevaCancionCatalogo = {
                      'songid': songidArchivo, 
@@ -161,14 +170,14 @@ def getAllSongsData():
                      'dif_bajo': str(difBajoExtraida), 
                      'dif_bateria': str(difBateriaExtraida), 
                      'dif_voz': str(difVozExtraida),
-                     'nueva': 'no',
+                     'nueva': flagCancionNueva,
                      'tapa_server': 'localhost',
                      'tapa_path': cancion_tapa_file,
                      'tapa_hash': '5dfc4a1d4666de864f05e14cb2665e02',
                      'preview_server': 'localhost',
                      'preview_path': cancion_prev_file,
                      'preview_hash': '9bbd8bf5beb3b8cd94c8b666aa6b1580',
-                     'url': request.host_url
+                     'url': urlCancion
                 }
                 nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
                 dictCancionesCatalogo.update(nuevaCancionDisp)
