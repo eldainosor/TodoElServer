@@ -146,8 +146,8 @@ def getAllSongsData():
                         disc_name_raw = f.read(0x100)
                         disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
 
-                cancion_tapa_file = "/static/assets/0" + songidArchivo + ".cover"
-                cancion_prev_file = "/static/assets/0" + songidArchivo + ".prev"
+                cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
+                cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
 
                 urlCancion = request.host_url + "website/index.php"
 
@@ -215,12 +215,12 @@ def index():
     except Exception as e:
         return f"Error serving file: {e}", 500
 
-@app.route('/static/assets/<path:filename>')
+@app.route('/static/assets/preview/<path:filename>')
 def serve_placeholder(filename):
     if filename.endswith('.cover'):
-        path = 'static/assets/placeholder_cover.png'
+        path = 'static/assets/preview/placeholder_cover.png'
     elif filename.endswith('.prev'):
-        path = 'static/assets/placeholder_preview.wav'
+        path = 'static/assets/preview/placeholder_preview.wav'
     else:
         abort(404)
     with open(path, 'rb') as f:
