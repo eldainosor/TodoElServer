@@ -3,8 +3,8 @@
 # Objetivo: Recrear con flask un servidor ejecutable
 #           que permita acceder a cualquier usuario
 #           a jugar a El Rock de Tu Vida con un parche
-#           y 2 pancitos, sin hosts, ni XAMPP. 
-#           
+#           y 2 pancitos, sin hosts, ni XAMPP.
+#
 #           Solo va a necesidar un parche en el juego
 #           para redireccionar llamados:
 #           www.elrockdetuvida.com --> localhost:4637
@@ -21,6 +21,9 @@ import struct
 import sys
 from pathlib import Path
 
+# Importando datos del juego y otras cosas
+from erdtv_data import *
+
 # Necesario para exportar cosas estáticas
 def get_bundle_dir():
     # PyInstaller creates a temp folder and stores path in _MEIPASS
@@ -32,9 +35,6 @@ def get_bundle_dir():
 app = Flask(__name__,
             static_url_path='/static',
             static_folder=os.path.join(get_bundle_dir(), 'static'))
-
-# Importando datos del juego y otras cosas
-from erdtv_data import *
 
 # Vamos a hacer todo el trabajo con los archivos de una sola vez
 #
@@ -53,7 +53,7 @@ listAdsFinal = {}
 #    (giga copium)
 #    AVISO: CONTIENE CÓDIGO GENERADO CON IA
 #
-# 
+#
 def getAllSongsData():
     # Primero, vamos a establecer los datos necesarios para este proceso
     # siendo contadores, paths, etc.
@@ -120,7 +120,7 @@ def getAllSongsData():
                 # Hashear y guardar cancion autorizada
                 md5Cancion = hashlib.md5(prefijoValidador + contenidoCBR).hexdigest()
                 nuevaCancionAutorizada = {
-                     'songid': songidArchivo, 
+                     'songid': songidArchivo,
                      'hash': [str(md5Cancion)]
                 }
                 nuevaCancionAuth = {str(countCancionesAutorizadas): nuevaCancionAutorizada}
@@ -160,15 +160,15 @@ def getAllSongsData():
 
                 # Guardar la cancion disponible con sus metadatos
                 nuevaCancionCatalogo = {
-                     'songid': songidArchivo, 
-                     'banda': band_name_extraido, 
-                     'cancion': tituloExtraido, 
-                     'disco': disc_name_extraido, 
-                     'anio': str(anioExtraido), 
-                     'dif_gral': str(difGralCalculada), 
-                     'dif_guitarra': str(difGuitarraExtraida), 
-                     'dif_bajo': str(difBajoExtraida), 
-                     'dif_bateria': str(difBateriaExtraida), 
+                     'songid': songidArchivo,
+                     'banda': band_name_extraido,
+                     'cancion': tituloExtraido,
+                     'disco': disc_name_extraido,
+                     'anio': str(anioExtraido),
+                     'dif_gral': str(difGralCalculada),
+                     'dif_guitarra': str(difGuitarraExtraida),
+                     'dif_bajo': str(difBajoExtraida),
+                     'dif_bateria': str(difBateriaExtraida),
                      'dif_voz': str(difVozExtraida),
                      'nueva': flagCancionNueva,
                      'tapa_server': 'localhost',
@@ -197,7 +197,7 @@ def getAllSongsData():
             nuevaCancion = {str(countCancionesDisponibles): cancionDisp}
             dictCancionesCatalogo.update(nuevaCancion)
             countCancionesDisponibles += 1
-    print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.") 
+    print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.")
 
 # Página de prueba
 @app.route('/')
@@ -316,13 +316,18 @@ def game_rest():
 
         case 'gethighscore':
             tipoContent = {
-                'songid': datosRequest['songid'],
-                'instrumentid': datosRequest['instrumentid'],
-                'level': datosRequest['level'],
-                'gamemode': datosRequest['gamemode'],
-                'startpos': '0',
-                'count': '0',
-                'userid': '000001'
+                'table': [
+                    {
+                      "nick": "JorgePruebas",
+                      "score": "1911",
+                      "userid": "2",
+                      "instrumentid": "GUITAR",
+                      "level": "HARD",
+                      "gamemode": "cooperative",
+                      "songid": "634399367177968750"
+                    }
+                ],
+                'startpos':0
             }
 
         case 'getads':
