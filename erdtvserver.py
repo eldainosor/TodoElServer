@@ -126,6 +126,7 @@ def getAllSongsData():
                 countCancionesAutorizadas += 1
 
                 archivoBanda = Path(pathBandasInstaladas) / f"{format(bandaExtraida, 'X')}.band"
+                band_name_extraido = "Desconocido"
                 if archivoBanda:
                     with open(str(archivoBanda), "rb") as f:
                         f.seek(4)  # skip magic
@@ -135,6 +136,7 @@ def getAllSongsData():
                         band_name_extraido = band_name_raw.decode('utf-16-le').rstrip('\x00')
 
                 archivoDisco = Path(pathDiscosInstaladas) / f"{format(discoExtraido, 'X')}.disc"
+                disc_name_extraido = "Desconocido"
                 if archivoDisco:
                     with open(str(archivoDisco), "rb") as f:
                         f.seek(4)  # skip magic
@@ -146,6 +148,15 @@ def getAllSongsData():
 
                 cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
                 cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
+                try:
+                    hashTapa = generarHashArchivo(cancion_tapa_file)
+                except FileNotFoundError:
+                    hashTapa = generarHashArchivo('static/assets/preview/placeholder_cover.png')
+
+                try:
+                    hashPreview = generarHashArchivo(cancion_prev_file)
+                except FileNotFoundError:
+                    hashPreview = generarHashArchivo('static/assets/preview/placeholder_preview.wav')
 
                 urlCancion = request.host_url + "website/index.php"
 
@@ -171,10 +182,10 @@ def getAllSongsData():
                      'nueva': flagCancionNueva,
                      'tapa_server': 'localhost',
                      'tapa_path': cancion_tapa_file,
-                     'tapa_hash': '5dfc4a1d4666de864f05e14cb2665e02',
+                     'tapa_hash': hashTapa,
                      'preview_server': 'localhost',
                      'preview_path': cancion_prev_file,
-                     'preview_hash': '9bbd8bf5beb3b8cd94c8b666aa6b1580',
+                     'preview_hash': hashPreview,
                      'url': urlCancion
                 }
                 nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
@@ -196,6 +207,14 @@ def getAllSongsData():
             dictCancionesCatalogo.update(nuevaCancion)
             countCancionesDisponibles += 1
     print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.")
+
+# Hagamos la verificación de hashes de cosas en un solo lugar
+def generarHashArchivo(nombreArchivo: str)-> str:
+    # sacar el md5 del ad
+    with open(str(nombreArchivo), 'rb') as f:
+        # Necesario para el hash de la cancion
+        datosArchivo = f.read()
+    return hashlib.md5(datosArchivo).hexdigest()
 
 # Página de prueba
 @app.route('/')
@@ -221,10 +240,6 @@ def serve_placeholder(filename):
         path = 'static/assets/preview/placeholder_preview.wav'
     else:
         abort(404)
-    with open(path, 'rb') as f:
-        data = f.read()
-
-    print("ASSET", filename, len(data), hashlib.md5(data).hexdigest())
     return send_file(path, mimetype='application/octet-stream')
 
 @app.route('/game/rest.php', methods=['POST'])
@@ -349,11 +364,6 @@ def game_rest():
                 if listaAdsMainMenu and magicNumMainMenu == 4:
                     # que ad vamos a elegir?
                     adSeleccionada = listaAdsMainMenu[random.randrange(1, len(listaAdsMainMenu))]
-                    # sacar el md5 del ad
-                    with open(str(adSeleccionada), 'rb') as f:
-                        # Necesario para el hash de la cancion
-                        datosAd = f.read()
-                    md5AdMainMenu = hashlib.md5(datosAd).hexdigest()
                     # una vez hecho todo, vamos a mandarle la lista
                     nuevaAd = {
                         'hash' : md5AdMainMenu,
@@ -368,10 +378,7 @@ def game_rest():
                         # que ad vamos a elegir?
                         adSeleccionada = listaAdsMainMenu2[random.randrange(1, len(listaAdsMainMenu2))]
                         # sacar el md5 del ad
-                        with open(str(adSeleccionada), 'rb') as f:
-                            # Necesario para el hash de la cancion
-                            datosAd = f.read()
-                        md5AdMainMenu2 = hashlib.md5(datosAd).hexdigest()
+                        md5AdMainMenu2 = generarHashArchivo(adSeleccionada)
                         # una vez hecho todo, vamos a mandarle la lista
                         nuevaAd = {
                             'hash' : md5AdMainMenu2,
@@ -388,10 +395,7 @@ def game_rest():
                         # que ad vamos a elegir?
                         adSeleccionada = listaAdsLoading[random.randrange(1, len(listaAdsLoading))]
                         # sacar el md5 del ad
-                        with open(str(adSeleccionada), 'rb') as f:
-                            # Necesario para el hash de la cancion
-                            datosAd = f.read()
-                        md5AdLoading = hashlib.md5(datosAd).hexdigest()
+                        md5AdLoading = generarHashArchivo(adSeleccionada)
                         # una vez hecho todo, vamos a mandarle la lista
                         nuevaAd = {
                             'hash' : md5AdLoading,
