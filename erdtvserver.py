@@ -107,12 +107,10 @@ def getAllSongsData():
                         titulo_bytes.append(b)
                     tituloExtraido = b''.join(titulo_bytes).decode('utf-16-le')
 
-                    # Posición después del doble nulo
-                    pos_despues_titulo = f.tell()   # apunta justo después de los dos bytes nulos
-                    # Saltar 10 bytes (offset fijo según análisis)
-                    f.seek(pos_despues_titulo + 10)
+                    # Buscamos el punto en donde estan los metadatos de dificultad directamente
+                    f.seek(0x160)
                     # Leer 4 bytes de dificultades (guitarra, bajo, batería, voz)
-                    difGuitarraExtraida, difBajoExtraida, difBateriaExtraida, difVozExtraida = struct.unpack('4B', f.read(4))
+                    difGuitarraExtraida, difBajoExtraida, difBateriaExtraida, difVozExtraida = struct.unpack('<HHHH', f.read(8))
 
                     # Dificultad general = promedio redondeado para abajo
                     difGralCalculada = math.floor((difGuitarraExtraida + difBajoExtraida + difBateriaExtraida + difVozExtraida) / 4)
