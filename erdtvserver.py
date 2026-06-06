@@ -273,7 +273,7 @@ def game_rest():
             }
 
         case 'getticker':
-            strTicker = listaTicker[random.randrange(1, len(listaTicker))]
+            strTicker = "TODOELROCK_TEST - " + listaTicker[random.randrange(1, len(listaTicker))]
             if strTicker != "bolas":
                 strTicker = strTicker.upper()
 
@@ -330,7 +330,7 @@ def game_rest():
 
         case 'getads':
             # Flag para activar las falsas publicidades
-            mostrarAdsAdicionales=False
+            mostrarAdsAdicionales=True
 
             if mostrarAdsAdicionales:
                 # Añadiendo variables principales
