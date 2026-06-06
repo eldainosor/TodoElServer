@@ -344,7 +344,7 @@ def game_rest():
                 listAdsFinal = []
 
                 # Hagamos que aparezcan random
-                magicNumMainMenu = random.randrange(1, 5)
+                magicNumMainMenu = random.randrange(1, 4)
                 magicNumMainMenu2 = random.randrange(1, 5)
                 magicNumLoading = random.randrange(1, 3)
 
