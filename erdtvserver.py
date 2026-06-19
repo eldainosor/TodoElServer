@@ -146,8 +146,8 @@ def getAllSongsData():
                         disc_name_raw = f.read(0x100)
                         disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
 
-                cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
-                cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
+                cancion_tapa_file = "/static/assets/preview/placeholder_cover.png"
+                cancion_prev_file = "/static/assets/preview/placeholder_preview.wav"
                 try:
                     hashTapa = generarHashArchivo(cancion_tapa_file)
                 except FileNotFoundError:
