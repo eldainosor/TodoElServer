@@ -42,6 +42,10 @@ app = Flask(__name__,
 dictCancionesCatalogo = {}
 dictCancionesAutorizadas = {}
 listAdsFinal = {}
+listaUsuarios = []
+listaPuntajes = {}
+sinPuntajes = False
+nombreArchivoDatos = "usuarios_puntajes.json"
 
 # CONCEPTO:
 #    El juego tiene los metadatos de sus canciones en los archivos CBR,
@@ -216,6 +220,68 @@ def generarHashArchivo(nombreArchivo: str)-> str:
         datosArchivo = f.read()
     return hashlib.md5(datosArchivo).hexdigest()
 
+# Vamos a hacer un sistema de puntajes local
+# Todo esto se va a guardar en
+#       %LOCALAPPDATA%\ERDTV\El Rock de Tu Vida\TodoElRock
+def inicializarArchivoDatos():
+    try:
+        localappdata_path = os.getenv('LOCALAPPDATA')
+        if localappdata_path:
+            print("El programa se está ejecutando en un entorno local en Windows, procediendo a preparar cosas para los puntajes")
+            # ya estamos dentro de LocalAppData, vamos a crear nuestra carpeta de trabajo
+            dirGuardadoPuntajes = os.path.join(localappdata_path,"ERDTV", "El Rock de Tu Vida", "TodoElServer")
+            os.makedirs(dirGuardadoPuntajes, exist_ok=True)
+            print("Dir creado en: " + str(dirGuardadoPuntajes))
+            global archivoGuardadoDatos
+            archivoGuardadoDatos = Path(os.path.join(dirGuardadoPuntajes, nombreArchivoDatos))
+
+            # 1. Verificar si el archivo NO existe
+            if not os.path.exists(archivoGuardadoDatos):
+                file_data = {
+                    "usuarios": [],
+                    "puntajes": {}
+                }
+                print("No existe archivo de puntajes, creandolo en " +  str(archivoGuardadoDatos))
+            else:
+                # Si el archivo existe, lo leemos en modo lectura ('r')
+                with open(archivoGuardadoDatos, 'r', encoding='utf-8') as file:
+                    try:
+                        print("Cargando archivo de puntajes en: " +  str(archivoGuardadoDatos))
+                        file_data = json.load(file)
+
+                        # CORRECCIÓN AQUÍ: Forzamos la estructura sin importar qué tenga adentro
+                        if not isinstance(file_data, dict):
+                            file_data = {}
+
+                        # Si 'usuarios' no existe, devuelve [], si 'puntajes' no existe, devuelve {}
+                        file_data = {
+                            "usuarios": file_data.get("usuarios", []),
+                            "puntajes": file_data.get("puntajes", {})
+                        }
+
+                    except json.JSONDecodeError:
+                        # Por si el archivo existe pero está totalmente vacío o corrupto
+                        file_data = {
+                            "usuarios": [],
+                            "puntajes": {}
+                        }
+                        print("Archivo de datos no válidos, regenerando...")
+
+            # Asignamos a las variables
+            global listaUsuarios
+            listaUsuarios = file_data['usuarios']
+            global listaPuntajes
+            listaPuntajes = file_data['puntajes']
+
+            # 3. Guardar los datos actualizados/limpiados en el archivo
+            with open(archivoGuardadoDatos, 'w', encoding='utf-8') as file:
+                json.dump(file_data, file, indent=4, ensure_ascii=False)
+
+    except Exception as e:
+        print("el juego no va a guardar puntajes")
+        print("motivo: ", type(e).__name__, "-", e)
+        sinPuntajes = True
+
 # Página de prueba
 @app.route('/')
 def redir():
@@ -244,6 +310,8 @@ def serve_placeholder(filename):
 
 @app.route('/game/rest.php', methods=['POST'])
 def game_rest():
+    if not listaUsuarios:
+        inicializarArchivoDatos()
     # Inicializando las listas de canciones solo si no tenemos datos
     if not dictCancionesAutorizadas or not dictCancionesCatalogo:
         getAllSongsData()
@@ -270,10 +338,32 @@ def game_rest():
     # Escribiendo respuestas según la ocasión
     match tipoRequest:
         case 'login':
+            cantidadUsuarios = len(listaUsuarios)
+            userid_usuario = cantidadUsuarios + 1
+            nick_usuario = datosRequest['username']
+            if datosRequest['username'] in listaUsuarios:
+                userid_usuario = listaUsuarios[datosRequest['username']]['userid']
+                nick_usuario = listaUsuarios[datosRequest['username']]['usuario']
+            else:
+                nuevoUsuario = {
+                    "userid": userid_usuario,
+                    "usuario": nick_usuario
+                }
+                with open(archivoGuardadoDatos, 'r+') as file:
+                    # Load existing data into a dictionary
+                    file_data = json.load(file)
+                    # Append new data to the 'emp_details' list
+                    file_data["usuarios"].append(nuevoUsuario)
+
+                    # Move the cursor to the beginning of the file
+                    file.seek(0)
+
+                    # Write the updated data back to the file
+                    json.dump(file_data, file, indent=4)
             tipoContent = {
-                'userid': '000001',
+                'userid': str(userid_usuario),
                 'sessionid': '1',
-                'nick': datosRequest['username']
+                'nick': nick_usuario
             }
 
         case 'logout':
