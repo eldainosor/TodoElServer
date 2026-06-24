@@ -150,17 +150,17 @@ def getAllSongsData():
                         disc_name_raw = f.read(0x100)
                         disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
 
-                cancion_tapa_file = "/static/assets/preview/placeholder_cover.cover"
-                cancion_prev_file = "/static/assets/preview/placeholder_cover.prev"
+                cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
+                cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
                 try:
                     hashTapa = generarHashArchivo(cancion_tapa_file)
                 except FileNotFoundError:
-                    hashTapa = generarHashArchivo('static/assets/preview/placeholder_cover.png')
+                    hashTapa = generarHashArchivo(os.path.join(get_bundle_dir(), 'static', 'assets', 'preview', 'placeholder.cover'))
 
                 try:
                     hashPreview = generarHashArchivo(cancion_prev_file)
                 except FileNotFoundError:
-                    hashPreview = generarHashArchivo('static/assets/preview/placeholder_preview.wav')
+                    hashPreview = generarHashArchivo(os.path.join(get_bundle_dir(), 'static', 'assets', 'preview', 'placeholder.prev'))
 
                 urlCancion = request.host_url + "website/index.php"
 
@@ -301,9 +301,9 @@ def index():
 @app.route('/static/assets/preview/<path:filename>')
 def serve_placeholder(filename):
     if filename.endswith('.cover'):
-        path = 'static/assets/preview/placeholder_cover.png'
+        path = 'static/assets/preview/placeholder.cover'
     elif filename.endswith('.prev'):
-        path = 'static/assets/preview/placeholder_preview.wav'
+        path = 'static/assets/preview/placeholder.prev'
     else:
         abort(404)
     return send_file(path, mimetype='application/octet-stream')
