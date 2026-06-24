@@ -150,8 +150,8 @@ def getAllSongsData():
                         disc_name_raw = f.read(0x100)
                         disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
 
-                cancion_tapa_file = "/static/assets/preview/placeholder_cover.png"
-                cancion_prev_file = "/static/assets/preview/placeholder_preview.wav"
+                cancion_tapa_file = "/static/assets/preview/placeholder_cover.cover"
+                cancion_prev_file = "/static/assets/preview/placeholder_cover.prev"
                 try:
                     hashTapa = generarHashArchivo(cancion_tapa_file)
                 except FileNotFoundError:
@@ -421,13 +421,13 @@ def game_rest():
             tipoContent = {
                 'table': [
                     {
-                      "nick": "JorgePruebas",
-                      "score": "1911",
+                      "nick": "THIS_PUNTAJE_SUCKS",
+                      "score": "2344",
                       "userid": "2",
                       "instrumentid": "GUITAR",
                       "level": "HARD",
                       "gamemode": "cooperative",
-                      "songid": "634399367177968750"
+                      "songid": int(datosRequest['songid'])
                     }
                 ],
                 'startpos':0
