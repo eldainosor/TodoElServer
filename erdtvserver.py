@@ -229,7 +229,7 @@ def inicializarArchivoDatos():
         if localappdata_path:
             print("El programa se está ejecutando en un entorno local en Windows, procediendo a preparar cosas para los puntajes")
             # ya estamos dentro de LocalAppData, vamos a crear nuestra carpeta de trabajo
-            dirGuardadoPuntajes = os.path.join(localappdata_path,"ERDTV", "El Rock de Tu Vida", "TodoElServer")
+            dirGuardadoPuntajes = os.path.join(localappdata_path,"ERDTV", "El Rock de Tu Vida", "todoelserver")
             os.makedirs(dirGuardadoPuntajes, exist_ok=True)
             print("Dir creado en: " + str(dirGuardadoPuntajes))
             global archivoGuardadoDatos
@@ -346,7 +346,7 @@ def game_rest():
                 nick_usuario = listaUsuarios[datosRequest['username']]['usuario']
             else:
                 nuevoUsuario = {
-                    "userid": userid_usuario,
+                    "userid": f"{userid_usuario:05}",
                     "usuario": nick_usuario
                 }
                 with open(archivoGuardadoDatos, 'r+') as file:
@@ -361,7 +361,7 @@ def game_rest():
                     # Write the updated data back to the file
                     json.dump(file_data, file, indent=4)
             tipoContent = {
-                'userid': str(userid_usuario),
+                'userid': userid_usuario,
                 'sessionid': '1',
                 'nick': nick_usuario
             }
