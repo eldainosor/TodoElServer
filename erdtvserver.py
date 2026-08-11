@@ -144,17 +144,40 @@ def getAllSongsData():
                         disc_name_raw = f.read(0x100)
                         disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
 
+                # Valores base de las canciones (usando hashes del fallback)
+                local_catalog_path = os.path.join(get_bundle_dir(), "/static/assets/preview/official")
                 cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
+                cancion_tapa_hash = "5dfc4a1d4666de864f05e14cb2665e02"
                 cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
-
+                cancion_prev_hash = "9bbd8bf5beb3b8cd94c8b666aa6b1580"
                 urlCancion = request.host_url + "website/index.php"
+                flagCancionNueva = "no" if request.host_url in urlCancion else "si"
 
-                if songidArchivo in lista_songids_disco_2011:
-                    urlCancion = urlCancion + "?action=cancion_disco1"
-                elif songidArchivo in lista_songids_disco_2012:
-                    urlCancion = urlCancion + "?action=cancion_disco2"
+                # Alteramos datos si se encuentran en la lista de canciones oficiales
+                if Path(local_catalog_path).exists():
+                    if songidArchivo in lista_songids_disco_2011 or songidArchivo in lista_songids_disco_2012:
+                        cancion_tapa_file = "/static/assets/preview/official/cover/0" + songidArchivo + ".png"
+                        cancion_prev_file = "/static/assets/preview/official/prev/0" + songidArchivo + ".wav"
+                        if songidArchivo in lista_songids_disco_2011:
+                            urlCancion = urlCancion + "?action=cancion_disco1"
+                        elif songidArchivo in lista_songids_disco_2012:
+                            urlCancion = urlCancion + "?action=cancion_disco2"
 
-                flagCancionNueva = "si" if not request.host_url in urlCancion else "no"
+                    # Manera de limpiar el path generado
+                    cancion_tapa_clean_path = os.path.join(get_bundle_dir(), cancion_tapa_file.lstrip('/\\'))
+                    cancion_prev_clean_path = os.path.join(get_bundle_dir(), cancion_tapa_file.lstrip('/\\'))
+
+                    # Vamos a generar hashes
+                    with open(cancion_tapa_clean_path, 'rb') as f:
+                        # Necesario para el hash de la cancion
+                        cancion_tapa_file_data = f.read()
+
+                    with open(cancion_prev_clean_path, 'rb') as f:
+                        # Necesario para el hash de la cancion
+                        cancion_prev_file_data = f.read()
+
+                    cancion_tapa_hash = hashlib.md5(cancion_tapa_file_data).hexdigest()
+                    cancion_prev_hash = hashlib.md5(cancion_prev_file_data).hexdigest()
 
                 # Guardar la cancion disponible con sus metadatos
                 nuevaCancionCatalogo = {
@@ -171,10 +194,10 @@ def getAllSongsData():
                      'nueva': flagCancionNueva,
                      'tapa_server': 'localhost',
                      'tapa_path': cancion_tapa_file,
-                     'tapa_hash': '5dfc4a1d4666de864f05e14cb2665e02',
+                     'tapa_hash': cancion_tapa_hash,
                      'preview_server': 'localhost',
                      'preview_path': cancion_prev_file,
-                     'preview_hash': '9bbd8bf5beb3b8cd94c8b666aa6b1580',
+                     'preview_hash': cancion_prev_hash,
                      'url': urlCancion
                 }
                 nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
@@ -215,12 +238,14 @@ def index():
 
 @app.route('/static/assets/preview/<path:filename>')
 def serve_placeholder(filename):
+    print("Abriendo el filename " + filename)
     if filename.endswith('.cover'):
         path = 'static/assets/preview/placeholder_cover.png'
     elif filename.endswith('.prev'):
         path = 'static/assets/preview/placeholder_preview.wav'
     else:
-        abort(404)
+        if Path('static/assets/preview/official').exists():
+            path = 'static/assets/preview/' + filename
     with open(path, 'rb') as f:
         data = f.read()
 
