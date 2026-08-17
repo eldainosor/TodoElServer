@@ -216,7 +216,7 @@ def getAllSongsData():
                 nuevaCancionCatalogo = {
                      'songid': songidArchivo,
                      'banda': band_name_extraido,
-                     'cancion': tituloExtraido,
+                     'cancion': tituloExtraido.upper(),
                      'disco': disc_name_extraido,
                      'anio': str(anioExtraido),
                      'dif_gral': str(difGralCalculada),
@@ -275,7 +275,7 @@ def getAllSongsData():
         nuevaCancionCatalogo = {
              'songid': songidCatalogo,
              'banda': entradaCatalogo.get('banda', ''),
-             'cancion': entradaCatalogo.get('cancion', ''),
+             'cancion': entradaCatalogo.get('cancion', '').upper(),
              'disco': entradaCatalogo.get('disco', ''),
              'anio': str(entradaCatalogo.get('anio', '')),
              'dif_gral': str(entradaCatalogo.get('dif_gral', '0')),
