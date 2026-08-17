@@ -72,7 +72,7 @@ def indexarCatalogo(basePath):
 def resolverAssets(songid, entradaCatalogo, nombreOrigen, pathOrigen):
     # Valores base (fallback)
     cancion_tapa_file = "/static/assets/preview/0" + songid + ".cover"
-    cancion_tapa_hash = "5dfc4a1d4666de864f05e14cb2665e02"
+    cancion_tapa_hash = "8eb078c04a0523ad2cf35d899d083a4f"
     cancion_prev_file = "/static/assets/preview/0" + songid + ".prev"
     cancion_prev_hash = "9bbd8bf5beb3b8cd94c8b666aa6b1580"
     urlCancion = request.host_url + "website/index.php"
@@ -196,7 +196,7 @@ def getAllSongsData():
 
                 # Valores base (fallback)
                 cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
-                cancion_tapa_hash = "5dfc4a1d4666de864f05e14cb2665e02"
+                cancion_tapa_hash = "8eb078c04a0523ad2cf35d899d083a4f"
                 cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
                 cancion_prev_hash = "9bbd8bf5beb3b8cd94c8b666aa6b1580"
                 urlCancion = request.host_url + "website/index.php"
