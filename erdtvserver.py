@@ -12,6 +12,7 @@
 
 # Inicializando Flask
 from flask import Flask, request, send_file, abort, redirect, url_for, send_from_directory
+from datetime import datetime
 import hashlib
 import json
 import math
@@ -380,6 +381,11 @@ def game_rest():
             strTicker = listaTicker[random.randrange(1, len(listaTicker))]
             if strTicker != "bolas":
                 strTicker = strTicker.upper()
+            elif strTicker == "Imaginate estar jugando a El Rock de Tu Vida en pleno":
+                # Hagamoslo atemporal????????
+                currentYear = datetime.now().year
+                strTicker = strTicker + " " + str(currentYear)
+
 
             tipoContent = {
                 'ticker': [strTicker]
