@@ -54,6 +54,50 @@ listAdsFinal = {}
 #    AVISO: CONTIENE CÓDIGO GENERADO CON IA
 #
 #
+def indexarCatalogo(basePath):
+    # Devuelve un dict {songid: entrada_json} a partir de basePath/catalog.json.
+    # Si no existe la carpeta o el catalog.json, devuelve {} (queda como fallback).
+    resultado = {}
+    catalogPath = Path(basePath) / "catalog.json"
+    if not Path(basePath).exists() or not catalogPath.exists():
+        return resultado
+
+    with open(catalogPath, 'r', encoding='utf-8') as f:
+        catalogo = json.load(f)  # lista de objetos
+
+    for entrada in catalogo:
+        resultado[entrada['songid']] = entrada
+    return resultado
+
+def resolverAssets(songid, entradaCatalogo, nombreOrigen, pathOrigen):
+    # Valores base (fallback)
+    cancion_tapa_file = "/static/assets/preview/0" + songid + ".cover"
+    cancion_tapa_hash = "5dfc4a1d4666de864f05e14cb2665e02"
+    cancion_prev_file = "/static/assets/preview/0" + songid + ".prev"
+    cancion_prev_hash = "9bbd8bf5beb3b8cd94c8b666aa6b1580"
+    urlCancion = request.host_url + "website/index.php"
+
+    # Los .png/.wav viven en subcarpetas cover/ y prev/ dentro de official/customs
+    pngPath = Path(pathOrigen) / "cover" / f"0{songid}.png"
+    wavPath = Path(pathOrigen) / "prev" / f"0{songid}.wav"
+
+    if pngPath.exists():
+        cancion_tapa_file = f"/static/assets/preview/{nombreOrigen}/cover/0{songid}.png"
+        with open(pngPath, 'rb') as f:
+            cancion_tapa_hash = hashlib.md5(f.read()).hexdigest()
+    # si el .png no existe, se queda con el fallback ya seteado arriba
+
+    if wavPath.exists():
+        cancion_prev_file = f"/static/assets/preview/{nombreOrigen}/prev/0{songid}.wav"
+        with open(wavPath, 'rb') as f:
+            cancion_prev_hash = hashlib.md5(f.read()).hexdigest()
+    # si el .wav no existe, se queda con el fallback ya seteado arriba
+
+    if entradaCatalogo.get('url'):
+        urlCancion = entradaCatalogo['url']
+
+    return cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion
+
 def getAllSongsData():
     # Primero, vamos a establecer los datos necesarios para este proceso
     # siendo contadores, paths, etc.
@@ -65,6 +109,12 @@ def getAllSongsData():
     prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
     print("Generando las listas de canciones...")
 
+    # Indexamos los catálogos de official y customs (si existen), por songid.
+    # Jerarquía de prioridad: customs > official > fallback hardcodeado.
+    pathOfficial = os.path.join(get_bundle_dir(), "static/assets/preview/official")
+    pathCustoms  = os.path.join(get_bundle_dir(), "static/assets/preview/customs")
+    catalogoOfficial = indexarCatalogo(pathOfficial)
+    catalogoCustoms  = indexarCatalogo(pathCustoms)
 
     # Arrancando los elementos necesarios para la lista final
     countCancionesAutorizadas = 0
@@ -144,40 +194,23 @@ def getAllSongsData():
                         disc_name_raw = f.read(0x100)
                         disc_name_extraido = disc_name_raw.decode('utf-16-le').rstrip('\x00')
 
-                # Valores base de las canciones (usando hashes del fallback)
-                local_catalog_path = os.path.join(get_bundle_dir(), "/static/assets/preview/official")
+                # Valores base (fallback)
                 cancion_tapa_file = "/static/assets/preview/0" + songidArchivo + ".cover"
                 cancion_tapa_hash = "5dfc4a1d4666de864f05e14cb2665e02"
                 cancion_prev_file = "/static/assets/preview/0" + songidArchivo + ".prev"
                 cancion_prev_hash = "9bbd8bf5beb3b8cd94c8b666aa6b1580"
                 urlCancion = request.host_url + "website/index.php"
-                flagCancionNueva = "no" if request.host_url in urlCancion else "si"
+                flagCancionNueva = "no"
 
-                # Alteramos datos si se encuentran en la lista de canciones oficiales
-                if Path(local_catalog_path).exists():
-                    if songidArchivo in lista_songids_disco_2011 or songidArchivo in lista_songids_disco_2012:
-                        cancion_tapa_file = "/static/assets/preview/official/cover/0" + songidArchivo + ".png"
-                        cancion_prev_file = "/static/assets/preview/official/prev/0" + songidArchivo + ".wav"
-                        if songidArchivo in lista_songids_disco_2011:
-                            urlCancion = urlCancion + "?action=cancion_disco1"
-                        elif songidArchivo in lista_songids_disco_2012:
-                            urlCancion = urlCancion + "?action=cancion_disco2"
-
-                    # Manera de limpiar el path generado
-                    cancion_tapa_clean_path = os.path.join(get_bundle_dir(), cancion_tapa_file.lstrip('/\\'))
-                    cancion_prev_clean_path = os.path.join(get_bundle_dir(), cancion_tapa_file.lstrip('/\\'))
-
-                    # Vamos a generar hashes
-                    with open(cancion_tapa_clean_path, 'rb') as f:
-                        # Necesario para el hash de la cancion
-                        cancion_tapa_file_data = f.read()
-
-                    with open(cancion_prev_clean_path, 'rb') as f:
-                        # Necesario para el hash de la cancion
-                        cancion_prev_file_data = f.read()
-
-                    cancion_tapa_hash = hashlib.md5(cancion_tapa_file_data).hexdigest()
-                    cancion_prev_hash = hashlib.md5(cancion_prev_file_data).hexdigest()
+                # Jerarquía: customs > official > fallback
+                if songidArchivo in catalogoCustoms:
+                    cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion = \
+                        resolverAssets(songidArchivo, catalogoCustoms[songidArchivo], "customs", pathCustoms)
+                    flagCancionNueva = "si"
+                elif songidArchivo in catalogoOfficial:
+                    cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion = \
+                        resolverAssets(songidArchivo, catalogoOfficial[songidArchivo], "official", pathOfficial)
+                    flagCancionNueva = "no"
 
                 # Guardar la cancion disponible con sus metadatos
                 nuevaCancionCatalogo = {
@@ -218,6 +251,51 @@ def getAllSongsData():
             nuevaCancion = {str(countCancionesDisponibles): cancionDisp}
             dictCancionesCatalogo.update(nuevaCancion)
             countCancionesDisponibles += 1
+
+    # Extender el catálogo con canciones de official/customs que todavía no
+    # tengan un .cbr instalado (por ejemplo, customs recién publicadas y aún
+    # no descargadas por el usuario). Se muestran en getallsongs con su url
+    # de descarga, pero no se autorizan para jugar hasta tener el .cbr real.
+    songidsExistentes = {v['songid'] for v in dictCancionesCatalogo.values()}
+
+    catalogoExtendido = {}
+    catalogoExtendido.update(catalogoOfficial)  # menor prioridad
+    catalogoExtendido.update(catalogoCustoms)   # mayor prioridad, pisa si coincide
+
+    for songidCatalogo, entradaCatalogo in catalogoExtendido.items():
+        if songidCatalogo in songidsExistentes:
+            continue  # ya está cubierto por un .cbr, no duplicar
+
+        nombreOrigen = "customs" if songidCatalogo in catalogoCustoms else "official"
+        pathOrigen = pathCustoms if nombreOrigen == "customs" else pathOfficial
+
+        cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion = \
+            resolverAssets(songidCatalogo, entradaCatalogo, nombreOrigen, pathOrigen)
+
+        nuevaCancionCatalogo = {
+             'songid': songidCatalogo,
+             'banda': entradaCatalogo.get('banda', ''),
+             'cancion': entradaCatalogo.get('cancion', ''),
+             'disco': entradaCatalogo.get('disco', ''),
+             'anio': str(entradaCatalogo.get('anio', '')),
+             'dif_gral': str(entradaCatalogo.get('dif_gral', '0')),
+             'dif_guitarra': str(entradaCatalogo.get('dif_guitarra', '0')),
+             'dif_bajo': str(entradaCatalogo.get('dif_bajo', '0')),
+             'dif_bateria': str(entradaCatalogo.get('dif_bateria', '0')),
+             'dif_voz': str(entradaCatalogo.get('dif_voz', '0')),
+             'nueva': "si" if nombreOrigen == "customs" else "no",
+             'tapa_server': 'localhost',
+             'tapa_path': cancion_tapa_file,
+             'tapa_hash': cancion_tapa_hash,
+             'preview_server': 'localhost',
+             'preview_path': cancion_prev_file,
+             'preview_hash': cancion_prev_hash,
+             'url': urlCancion
+        }
+        nuevaCancionDisp = {str(countCancionesDisponibles): nuevaCancionCatalogo}
+        dictCancionesCatalogo.update(nuevaCancionDisp)
+        countCancionesDisponibles += 1
+
     print("Se autorizaron " + str(countCancionesAutorizadas) + " canciones y se encuentran " + str(countCancionesDisponibles) + " canciones para jugar.")
 
 # Página de prueba
@@ -244,7 +322,8 @@ def serve_placeholder(filename):
     elif filename.endswith('.prev'):
         path = 'static/assets/preview/placeholder_preview.wav'
     else:
-        if Path('static/assets/preview/official').exists():
+        # filename ya viene con el subpath incluido (official/0XXXX.png o customs/0XXXX.png)
+        if Path('static/assets/preview/official').exists() or Path('static/assets/preview/customs').exists():
             path = 'static/assets/preview/' + filename
     with open(path, 'rb') as f:
         data = f.read()
