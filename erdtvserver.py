@@ -20,10 +20,29 @@ import os
 import random
 import struct
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 # Importando datos del juego y otras cosas
 from erdtv_data import *
+
+# Configuración del repo online (GitLab público) de catálogos oficiales/customs.
+# Cada URL debe apuntar a la carpeta RAW que contiene catalog.json + cover/ + prev/
+# Ejemplo de estructura esperada en el repo:
+#   official/catalog.json, official/cover/0XXXX.png, official/prev/0XXXX.wav
+#   customs/catalog.json,  customs/cover/0XXXX.png,  customs/prev/0XXXX.wav
+GITLAB_RAW_OFFICIAL = "https://gitlab.com/todoelrock/erdtv-catalogo/-/raw/main"
+GITLAB_RAW_CUSTOMS  = "https://gitlab.com/todoelrock/erdtv-catalogo-customs/-/raw/main"
+TIMEOUT_DESCARGA_ONLINE = 10  # segundos
+# Toggle: default acá abajo (TES_CATALOGOS_ONLINE_DEFAULT). Se puede
+# sobreescribir sin tocar el código con la variable de entorno
+# TES_ACTIVAR_CATALOGOS_ONLINE=1 (o "true"/"si").
+TES_CATALOGOS_ONLINE_DEFAULT = True
+TES_CATALOGOS_ONLINE = os.getenv(
+    'TES_ACTIVAR_CATALOGOS_ONLINE',
+    "1" if TES_CATALOGOS_ONLINE_DEFAULT else "0"
+).strip().lower() in ('1', 'true', 'si', 'sí', 'yes')
 
 # Necesario para exportar cosas estáticas
 def get_bundle_dir():
@@ -70,6 +89,70 @@ def indexarCatalogo(basePath):
         resultado[entrada['songid']] = entrada
     return resultado
 
+def descargarArchivoOnline(url, destino):
+    # Descarga un archivo y lo guarda en destino. Devuelve True/False según éxito.
+    try:
+        with urllib.request.urlopen(url, timeout=TIMEOUT_DESCARGA_ONLINE) as respuesta:
+            datos = respuesta.read()
+        os.makedirs(os.path.dirname(destino), exist_ok=True)
+        with open(destino, 'wb') as f:
+            f.write(datos)
+        return True
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+        print(f"No se pudo descargar {url}: {e}")
+        return False
+
+def sincronizarCatalogoOnline(rawBaseUrl, cacheDir):
+    # Baja catalog.json del repo y, para cada songid, sus .png/.wav.
+    # Devuelve un dict {songid: entrada} SOLO con las entradas cuyos assets
+    # se pudieron descargar/verificar correctamente. Si el cover o el preview
+    # de una entrada da 404 (o cualquier error), esa entrada se descarta del
+    # catálogo online — no se agrega igual con datos a medias — para que la
+    # jerarquía caiga al siguiente origen (disco: official/customs).
+    # Los assets que ya están en caché no se vuelven a descargar (idempotente).
+    catalogoValidado = {}
+
+    catalogUrl = rawBaseUrl.rstrip('/') + "/catalog.json"
+    catalogDestino = os.path.join(cacheDir, "catalog.json")
+
+    if not descargarArchivoOnline(catalogUrl, catalogDestino):
+        print(f"No se pudo sincronizar el catálogo online desde {rawBaseUrl} (sin internet o 404). Se usará el disco local como fallback.")
+        return catalogoValidado
+
+    with open(catalogDestino, 'r', encoding='utf-8') as f:
+        catalogo = json.load(f)
+
+    for entrada in catalogo:
+        songid = entrada['songid']
+        pngDestino = os.path.join(cacheDir, "cover", f"0{songid}.png")
+        wavDestino = os.path.join(cacheDir, "prev", f"0{songid}.wav")
+
+        pngOk = os.path.exists(pngDestino) or descargarArchivoOnline(
+            rawBaseUrl.rstrip('/') + f"/cover/0{songid}.png", pngDestino)
+        wavOk = os.path.exists(wavDestino) or descargarArchivoOnline(
+            rawBaseUrl.rstrip('/') + f"/prev/0{songid}.wav", wavDestino)
+
+        if pngOk and wavOk:
+            catalogoValidado[songid] = entrada
+        else:
+            print(f"Se ignora {songid} del catálogo online ({rawBaseUrl}): faltó cover y/o preview (404 u otro error).")
+
+    return catalogoValidado
+
+def resolverFuente(nombreBase, pathDisco, rawBaseUrl, pathCacheOnline):
+    # Decide el origen para "official" o "customs": si la carpeta existe
+    # server-side (en disco), se usa esa completa. Si NO existe, se reemplaza
+    # enteramente por el catálogo online (GitLab) de ese mismo tipo — solo si
+    # el toggle TES_CATALOGOS_ONLINE está activado; si no, ese tipo queda vacío.
+    if Path(pathDisco).exists():
+        return nombreBase, pathDisco, indexarCatalogo(pathDisco)
+
+    if TES_CATALOGOS_ONLINE:
+        print(f"No existe static/assets/preview/{nombreBase} server-side, se intenta traer '{nombreBase}' desde GitLab.")
+        return f"online_{nombreBase}", pathCacheOnline, sincronizarCatalogoOnline(rawBaseUrl, pathCacheOnline)
+
+    return nombreBase, pathDisco, {}
+
 def resolverAssets(songid, entradaCatalogo, nombreOrigen, pathOrigen):
     # Valores base (fallback)
     cancion_tapa_file = "/static/assets/preview/0" + songid + ".cover"
@@ -103,6 +186,7 @@ def getAllSongsData():
     # Primero, vamos a establecer los datos necesarios para este proceso
     # siendo contadores, paths, etc.
     dirCanciones=os.getenv('TES_DIR_JUEGO', os.path.dirname(sys.executable))
+
     pathBandasInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'band')
     pathDiscosInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'disc')
     pathCancionesInstaladas = os.path.join(dirCanciones, 'data', 'mozart', 'song')
@@ -110,12 +194,33 @@ def getAllSongsData():
     prefijoValidador = bytes.fromhex('b52167b41e4589fec5aa94')
     print("Generando las listas de canciones...")
 
-    # Indexamos los catálogos de official y customs (si existen), por songid.
-    # Jerarquía de prioridad: customs > official > fallback hardcodeado.
+    # Resolvemos "official" y "customs" de forma independiente: cada uno usa
+    # su carpeta en disco (server-side) si existe; si no existe, se reemplaza
+    # por el catálogo online (GitLab) de ese mismo tipo. El .cbr (local) sigue
+    # siendo la base que decide qué songids existen — esto solo resuelve de
+    # dónde sale la tapa/preview/url para cada uno.
     pathOfficial = os.path.join(get_bundle_dir(), "static/assets/preview/official")
     pathCustoms  = os.path.join(get_bundle_dir(), "static/assets/preview/customs")
-    catalogoOfficial = indexarCatalogo(pathOfficial)
-    catalogoCustoms  = indexarCatalogo(pathCustoms)
+    pathOfficialOnline = os.path.join(get_bundle_dir(), "static/assets/preview/online_official")
+    pathCustomsOnline  = os.path.join(get_bundle_dir(), "static/assets/preview/online_customs")
+
+    nombreOfficial, pathOfficialResuelto, catalogoOfficial = \
+        resolverFuente("official", pathOfficial, GITLAB_RAW_OFFICIAL, pathOfficialOnline)
+    nombreCustoms, pathCustomsResuelto, catalogoCustoms = \
+        resolverFuente("customs", pathCustoms, GITLAB_RAW_CUSTOMS, pathCustomsOnline)
+
+    # Lista de fuentes en orden de prioridad (la primera que tenga el songid gana).
+    # customs > official, cada una ya resuelta a disco u online según corresponda.
+    fuentesPrioridad = [
+        (nombreCustoms, pathCustomsResuelto, catalogoCustoms),
+        (nombreOfficial, pathOfficialResuelto, catalogoOfficial),
+    ]
+
+    def buscarOrigen(songid):
+        for nombreOrigen, pathOrigen, catalogo in fuentesPrioridad:
+            if songid in catalogo:
+                return nombreOrigen, pathOrigen, catalogo[songid]
+        return None, None, None
 
     # Arrancando los elementos necesarios para la lista final
     countCancionesAutorizadas = 0
@@ -203,15 +308,12 @@ def getAllSongsData():
                 urlCancion = request.host_url + "website/index.php"
                 flagCancionNueva = "no"
 
-                # Jerarquía: customs > official > fallback
-                if songidArchivo in catalogoCustoms:
+                # Jerarquía: customs (disco) > official (disco) > customs (online) > official (online) > fallback
+                nombreOrigen, pathOrigen, entradaCatalogo = buscarOrigen(songidArchivo)
+                if nombreOrigen:
                     cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion = \
-                        resolverAssets(songidArchivo, catalogoCustoms[songidArchivo], "customs", pathCustoms)
-                    flagCancionNueva = "si"
-                elif songidArchivo in catalogoOfficial:
-                    cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion = \
-                        resolverAssets(songidArchivo, catalogoOfficial[songidArchivo], "official", pathOfficial)
-                    flagCancionNueva = "no"
+                        resolverAssets(songidArchivo, entradaCatalogo, nombreOrigen, pathOrigen)
+                    flagCancionNueva = "si" if "customs" in nombreOrigen else "no"
 
                 # Guardar la cancion disponible con sus metadatos
                 nuevaCancionCatalogo = {
@@ -253,22 +355,22 @@ def getAllSongsData():
             dictCancionesCatalogo.update(nuevaCancion)
             countCancionesDisponibles += 1
 
-    # Extender el catálogo con canciones de official/customs que todavía no
-    # tengan un .cbr instalado (por ejemplo, customs recién publicadas y aún
-    # no descargadas por el usuario). Se muestran en getallsongs con su url
+    # Extender el catálogo con canciones de official/customs (disco u online) que
+    # todavía no tengan un .cbr instalado (por ejemplo, customs recién publicadas
+    # y aún no descargadas por el usuario). Se muestran en getallsongs con su url
     # de descarga, pero no se autorizan para jugar hasta tener el .cbr real.
     songidsExistentes = {v['songid'] for v in dictCancionesCatalogo.values()}
 
-    catalogoExtendido = {}
-    catalogoExtendido.update(catalogoOfficial)  # menor prioridad
-    catalogoExtendido.update(catalogoCustoms)   # mayor prioridad, pisa si coincide
+    # Unión de todos los songids conocidos en cualquiera de las 4 fuentes
+    songidsCatalogo = set()
+    for _, _, catalogo in fuentesPrioridad:
+        songidsCatalogo.update(catalogo.keys())
 
-    for songidCatalogo, entradaCatalogo in catalogoExtendido.items():
+    for songidCatalogo in songidsCatalogo:
         if songidCatalogo in songidsExistentes:
             continue  # ya está cubierto por un .cbr, no duplicar
 
-        nombreOrigen = "customs" if songidCatalogo in catalogoCustoms else "official"
-        pathOrigen = pathCustoms if nombreOrigen == "customs" else pathOfficial
+        nombreOrigen, pathOrigen, entradaCatalogo = buscarOrigen(songidCatalogo)
 
         cancion_tapa_file, cancion_tapa_hash, cancion_prev_file, cancion_prev_hash, urlCancion = \
             resolverAssets(songidCatalogo, entradaCatalogo, nombreOrigen, pathOrigen)
@@ -284,7 +386,7 @@ def getAllSongsData():
              'dif_bajo': str(entradaCatalogo.get('dif_bajo', '0')),
              'dif_bateria': str(entradaCatalogo.get('dif_bateria', '0')),
              'dif_voz': str(entradaCatalogo.get('dif_voz', '0')),
-             'nueva': "si" if nombreOrigen == "customs" else "no",
+             'nueva': "si" if "customs" in nombreOrigen else "no",
              'tapa_server': 'localhost',
              'tapa_path': cancion_tapa_file,
              'tapa_hash': cancion_tapa_hash,
@@ -323,9 +425,14 @@ def serve_placeholder(filename):
     elif filename.endswith('.prev'):
         path = 'static/assets/preview/placeholder_preview.wav'
     else:
-        # filename ya viene con el subpath incluido (official/0XXXX.png o customs/0XXXX.png)
-        if Path('static/assets/preview/official').exists() or Path('static/assets/preview/customs').exists():
-            path = 'static/assets/preview/' + filename
+        # filename ya viene con el subpath incluido:
+        # official/cover/0XXXX.png, customs/prev/0XXXX.wav,
+        # online_official/cover/0XXXX.png, online_customs/prev/0XXXX.wav, etc.
+        path = 'static/assets/preview/' + filename
+        if not Path(path).exists():
+            print(f"No se encontró el archivo {path}, se sirve el placeholder.")
+            path = 'static/assets/preview/placeholder_preview.wav' if filename.endswith('.wav') \
+                else 'static/assets/preview/placeholder_cover.png'
     with open(path, 'rb') as f:
         data = f.read()
 
@@ -385,8 +492,6 @@ def game_rest():
                 # Hagamoslo atemporal????????
                 currentYear = datetime.now().year
                 strTicker = strTicker + " " + str(currentYear)
-
-
             tipoContent = {
                 'ticker': [strTicker]
             }
